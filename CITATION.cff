@@ -1,0 +1,51 @@
+cff-version: 1.2.0
+message: "If you use these instruments, please cite them as below."
+title: "ccd-instruments: Calibrator, evaluator, and value elicitor for the Countervailing Co-Deployment framework"
+abstract: "Three offline, single-file browser instruments that fix the co-deployment level an automated decision system triggers, measure whether an existing claimant-side counterpart discharges that duty, and structure the value trade-off judgment the calibration depends on."
+authors:
+  - family-names: Panitz
+    given-names: Vanessa
+    affiliation: "University of Wisconsin Law School"
+type: software
+license: MIT
+version: 1.0.0
+date-released: 2026-09-12
+repository-code: "https://github.com/panitzvanessa/ccd-instruments"
+keywords:
+  - due process
+  - administrative law
+  - automated decision systems
+  - public benefits
+  - algorithmic accountability
+
+# ---------------------------------------------------------------
+# To reuse this file in the other repositories, change these four
+# fields and leave everything else as it is.
+#
+# claimant-tools
+#   title: "claimant-tools: Four offline instruments for reading a
+#     benefits denial and building an appeal"
+#   abstract: "Four single-file browser tools covering Social Security
+#     disability, nutrition assistance, unemployment insurance, and a
+#     general entry point that reads a denial letter for its deadline
+#     and the path it opens."
+#   repository-code: "https://github.com/panitzvanessa/claimant-tools"
+#
+# ai-state-collector
+#   title: "ai-state-collector: Collector and measurement tool for the
+#     United States federal AI use case inventories"
+#   abstract: "Collects the inventories agencies publish under Executive
+#     Order 13960 and OMB memoranda M-24-10 and M-25-21, preserves each
+#     file version with its commit SHA and retrieval timestamp,
+#     normalizes the yearly schemas into one table, and measures the
+#     due process safeguards agencies declare for high-impact systems."
+#   repository-code: "https://github.com/panitzvanessa/ai-state-collector"
+#
+# rulemaking-observatory
+#   title: "rulemaking-observatory: An open instrument measuring
+#     participation in United States notice-and-comment rulemaking"
+#   abstract: "Collects and analyzes public comments submitted through
+#     regulations.gov, with full provenance, to measure who speaks in
+#     federal rulemaking and how much of it is machine-written."
+#   repository-code: "https://github.com/panitzvanessa/rulemaking-observatory"
+# ---------------------------------------------------------------

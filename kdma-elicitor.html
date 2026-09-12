@@ -1,0 +1,767 @@
+<!doctype html>
+<!--
+  KDMA Elicitor
+  Module C of the Countervailing Co-Deployment toolkit.
+  Guides the identification of contested value trade-offs (key
+  decision-making attributes, after DARPA's In the Moment research
+  line) embedded in an automated government decision — producing the
+  KDMA level, the values-in-tension line, and a written justification
+  that Module A, the Due Process Calibrator, reads directly.
+
+  This instrument characterizes THE DECISION a system makes.
+  It never assesses, profiles, or scores any person.
+
+  MIT License
+
+  Copyright (c) 2026 The Countervailing Co-Deployment thesis author
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in
+  all copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>KDMA Elicitor · name the value trade-off inside the decision</title>
+<style>
+:root{
+  --ink:#0f172a; --surface:#1e293b;
+  --text:#e2e8f0; --muted:#94a3b8;
+  --blue:#3b82f6; --blue-soft:rgba(59,130,246,.14);
+  --amber:#f59e0b; --amber-soft:rgba(245,158,11,.14);
+  --red:#c8102e; --red-bright:#ef5468; --red-soft:rgba(200,16,46,.16);
+  --line:rgba(148,163,184,.18);
+  --serif:"Iowan Old Style",Palatino,"Palatino Linotype","Book Antiqua",Georgia,serif;
+  --sans:system-ui,-apple-system,"Segoe UI",Roboto,Ubuntu,sans-serif;
+  --mono:ui-monospace,"SF Mono",SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;
+  --radius:14px;
+}
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--ink);color:var(--text);font:16px/1.65 var(--sans);-webkit-font-smoothing:antialiased}
+a{color:var(--blue);text-decoration:none}
+a:hover{text-decoration:underline}
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
+input,select,textarea{font:inherit;color:var(--text)}
+.wrap{max-width:880px;margin-inline:auto;padding-inline:20px}
+.eyebrow{font:600 12px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--blue)}
+.cite{font:500 12.5px/1.5 var(--mono);color:var(--muted)}
+:focus-visible{outline:2px solid var(--blue);outline-offset:2px;border-radius:6px}
+.section{padding-block:40px;border-top:1px solid var(--line);scroll-margin-top:74px}
+.section-head{margin-bottom:22px}
+.section-head h2{font:700 clamp(22px,4vw,30px)/1.2 var(--serif);margin:8px 0 6px}
+.section-head p{margin:0;color:var(--muted);max-width:64ch}
+.btn{border-radius:10px;padding:12px 20px;font:600 14px/1 var(--sans);transition:transform .12s ease}
+.btn:hover{transform:translateY(-1px)}
+.btn-blue{background:var(--blue);color:#fff}
+.btn-red{background:transparent;color:#f0abb4;border:1px solid var(--red)}
+.btn-ghost{background:var(--ink);border:1px solid var(--line);color:var(--muted)}
+.btn-ghost:hover{color:var(--text)}
+.note{color:var(--muted);font-size:13px}
+[hidden]{display:none !important}
+
+.nav{position:sticky;top:0;z-index:40;background:rgba(15,23,42,.85);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.nav .wrap{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:54px;flex-wrap:wrap;padding-block:6px}
+.nav .brand{font:600 12.5px/1 var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.nav .links{display:flex;gap:12px;flex-wrap:wrap}
+.nav .links a{font:600 12px/1 var(--sans);color:var(--muted)}
+.nav .links a:hover{color:var(--text);text-decoration:none}
+#btn-erase{padding:8px 12px;font-size:12px}
+
+header.top{padding:52px 0 30px}
+header.top h1{font:700 clamp(32px,7vw,50px)/1.1 var(--serif);margin:14px 0 12px;letter-spacing:-.01em}
+header.top h1 .tick{color:var(--amber);font-style:italic}
+header.top p.lede{color:var(--muted);max-width:66ch;margin:0 0 18px;font-size:17px}
+.honesty{display:flex;gap:10px;align-items:flex-start;background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--amber);border-radius:10px;padding:12px 14px;max-width:66ch;margin-bottom:10px}
+.honesty p{margin:0;font-size:13.5px}
+.honesty .cite{display:block;margin-top:4px}
+
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:16px;margin-bottom:14px}
+.card label.head{display:block;font-size:15px;font-weight:600;margin-bottom:4px}
+.card .why{font-size:12.5px;color:var(--muted);margin:0 0 10px}
+textarea,.card input[type="text"]{width:100%;background:var(--ink);border:1px solid var(--line);border-radius:10px;padding:11px 12px;font-size:15px}
+textarea:focus,.card input:focus{border-color:var(--blue);outline:none}
+textarea{min-height:84px;resize:vertical;line-height:1.55}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0 10px}
+.chip{font:600 12.5px/1 var(--sans);padding:9px 12px;border-radius:99px;border:1px solid var(--line);background:var(--ink);color:var(--muted)}
+.chip[aria-pressed="true"]{border-color:var(--blue);color:#9cc3fb;background:var(--blue-soft)}
+.cols{display:grid;gap:14px;grid-template-columns:1fr}
+.probe{display:grid;gap:8px;margin-top:8px}
+.probe label{display:flex;gap:10px;align-items:flex-start;font-size:14px;background:var(--ink);border:1px solid var(--line);border-radius:10px;padding:10px 12px;cursor:pointer}
+.probe input{width:auto;margin-top:3px}
+.misfit button{font:600 12px/1 var(--mono);color:var(--muted)}
+.misfit button:hover{color:var(--text)}
+.misfit-note{margin:8px 0 0;font-size:13px;color:var(--amber);background:var(--amber-soft);border:1px solid rgba(245,158,11,.3);border-radius:8px;padding:8px 10px}
+.factcheck{display:flex;gap:10px;align-items:flex-start;font-size:14px;background:var(--ink);border:1px dashed var(--line);border-radius:10px;padding:10px 12px;margin-top:10px}
+.factcheck input{width:auto;margin-top:3px}
+
+.result-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:18px;margin-bottom:16px}
+.result-card h3{font:600 12px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--blue);margin:0 0 12px}
+.level-big{font:700 clamp(22px,5vw,32px)/1.2 var(--serif);margin:0 0 4px}
+.level-0 .level-big{color:var(--muted)}
+.level-1 .level-big{color:var(--amber)}
+.level-2 .level-big{color:var(--red-bright)}
+.tension-line{font:600 15px/1.5 var(--sans);margin:0 0 6px}
+.flag{margin-top:10px;font-size:13.5px;background:var(--amber-soft);border:1px solid rgba(245,158,11,.3);border-radius:10px;padding:10px 12px}
+.safeguards{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.safeguards li{background:var(--ink);border:1px solid var(--line);border-left:3px solid var(--red);border-radius:10px;padding:10px 12px;font-size:13.5px}
+.calibrate-row{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-top:16px}
+.handoff code{font:500 12px/1.7 var(--mono);color:var(--muted);display:block;margin-top:8px;word-break:break-all}
+details.how{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 16px;margin:6px 0 0}
+details.how summary{cursor:pointer;font:600 13.5px/1.4 var(--sans);color:var(--muted)}
+details.how summary:hover{color:var(--text)}
+details.how p,details.how li{font-size:13.5px;color:var(--muted)}
+details.how p{margin:10px 0 0}
+
+#about h3{font:700 19px/1.3 var(--serif);margin:26px 0 8px}
+#about p,#about li{font-size:14.5px}
+#about p{margin:0 0 10px;max-width:72ch}
+#about ul{margin:0 0 12px;padding-left:22px}
+#about .license{font:500 12.5px/1.7 var(--mono);color:var(--muted);background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px;max-width:none;white-space:pre-wrap}
+footer{border-top:1px solid var(--line);padding:26px 0 40px;margin-top:48px}
+footer p{color:var(--muted);font-size:13px;margin:4px 0}
+@media (min-width:760px){
+  .cols{grid-template-columns:1fr 1fr}
+  .section{padding-block:52px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}html{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+
+<nav class="nav" aria-label="Sections">
+  <div class="wrap">
+    <span class="brand">CCD &middot; Module C</span>
+    <span class="links">
+      <a href="#decision">The decision</a><a href="#values">The values</a><a href="#probes">The probes</a>
+      <a href="#result">Result</a><a href="#about">About</a>
+    </span>
+    <button class="btn btn-red" id="btn-erase" title="Clear every field on this page">Clear the page</button>
+  </div>
+</nav>
+
+<header class="top wrap">
+  <span class="eyebrow">Countervailing Co-Deployment &middot; Module C</span>
+  <h1>KDMA <span class="tick">Elicitor</span></h1>
+  <p class="lede">The calibrator's most fragile input is a three-option selector: does the decision
+     trade one contested value against another? This module replaces the guess with a walk. It
+     helps you name the values in tension, locate where the balance is struck, and test whether
+     the fight is really about values at all — producing the KDMA level, the tension line, and a
+     written justification the Due Process Calibrator reads directly.</p>
+  <div class="honesty">
+    <p><strong>This instrument characterizes the decision, never the decision-maker.</strong>
+       KDMA here means <em>key decision-making attributes</em>, after DARPA's In the Moment
+       research line — properties of decisions in domains with no single right answer. It is not
+       a personality assessment, profiles no individual, and stores nothing: export what you need,
+       the page forgets the rest.
+       <span class="cite">A design instrument &middot; no storage &middot; MIT License</span></p>
+  </div>
+</header>
+
+<!-- ================= 1 · THE DECISION ================= -->
+<section class="section wrap" id="decision">
+  <div class="section-head">
+    <span class="eyebrow">Step 1</span>
+    <h2>Name the decision</h2>
+    <p>One system, one decision. Not "the SNAP system" — the specific adverse call: flags a claim
+       as fraudulent, denies an application, sets an appointment, computes an amount.</p>
+  </div>
+  <div class="card">
+    <label class="head" for="q-decision">What does the system decide, about whom?</label>
+    <p class="why">Try three worked examples first, or write your own.</p>
+    <div class="chips">
+      <button class="chip" data-example="fraud" aria-pressed="false">Fraud flagging</button>
+      <button class="chip" data-example="calc" aria-pressed="false">Benefit amount calculation</button>
+      <button class="chip" data-example="work" aria-pressed="false">Work-requirement screening</button>
+    </div>
+    <textarea id="q-decision" placeholder="e.g. A state system flags unemployment claims as fraudulent and imposes penalties on its own..."></textarea>
+  </div>
+</section>
+
+<!-- ================= 2 · THE VALUES ================= -->
+<section class="section wrap" id="values">
+  <div class="section-head">
+    <span class="eyebrow">Step 2</span>
+    <h2>Name the values in tension</h2>
+    <p>Every automated benefits decision serves something the state wants and touches something
+       the person needs. Pick one from each side, or write your own — the pair becomes the
+       tension line.</p>
+  </div>
+  <div class="cols">
+    <div class="card">
+      <label class="head">What the system optimizes for — the state's side</label>
+      <div class="chips" id="state-chips">
+        <button class="chip" data-v="Program integrity" aria-pressed="false">Program integrity</button>
+        <button class="chip" data-v="Fiscal efficiency" aria-pressed="false">Fiscal efficiency</button>
+        <button class="chip" data-v="Processing speed" aria-pressed="false">Processing speed</button>
+        <button class="chip" data-v="Uniformity" aria-pressed="false">Uniformity</button>
+        <button class="chip" data-v="Deterrence" aria-pressed="false">Deterrence</button>
+      </div>
+      <input type="text" id="state-custom" placeholder="or write the state-side value…" autocomplete="off">
+    </div>
+    <div class="card">
+      <label class="head">What the person stands to lose — the claimant's side</label>
+      <div class="chips" id="person-chips">
+        <button class="chip" data-v="Access to subsistence" aria-pressed="false">Access to subsistence</button>
+        <button class="chip" data-v="Timeliness of aid" aria-pressed="false">Timeliness of aid</button>
+        <button class="chip" data-v="Individualized assessment" aria-pressed="false">Individualized assessment</button>
+        <button class="chip" data-v="Continuity of benefits" aria-pressed="false">Continuity of benefits</button>
+        <button class="chip" data-v="Dignity" aria-pressed="false">Dignity</button>
+      </div>
+      <input type="text" id="person-custom" placeholder="or write the claimant-side value…" autocomplete="off">
+    </div>
+  </div>
+  <div class="misfit">
+    <button type="button" id="btn-misfit" aria-expanded="false">▸ neither side fits, or there is more than one tension</button>
+    <p class="misfit-note" id="misfit-note" hidden>Both happen. If several tensions run through one
+       decision, elicit the dominant one here and run the walk again for the second — the
+       calibrator takes one tension line, and the justification can name the rest. If no pair
+       fits at all, that is itself a finding: write the decision's real stakes in your own words
+       in the boxes, the chips are prompts, not categories you owe anything to.</p>
+  </div>
+</section>
+
+<!-- ================= 3 · THE PROBES ================= -->
+<section class="section wrap" id="probes">
+  <div class="section-head">
+    <span class="eyebrow">Step 3</span>
+    <h2>Three probes</h2>
+    <p>The level comes from the first and third probes. The second doesn't change the level — it
+       changes who should answer for the choice, and it feeds the calibrator's opacity inputs.</p>
+  </div>
+  <div class="card">
+    <label class="head">Probe 1 — Is there a genuine trade-off?</label>
+    <p class="why">Could two reasonable officials, both following the rules, decide this same case
+       differently because they weight these values differently?</p>
+    <div class="probe">
+      <label><input type="radio" name="p1" value="no"> No — the rule dictates the outcome; any dispute is about the facts, not about what should win</label>
+      <label><input type="radio" name="p1" value="yes"> Yes — the same facts could honestly go either way, depending on how the values are weighed</label>
+    </div>
+    <div class="factcheck">
+      <input type="checkbox" id="fact-flag">
+      <label for="fact-flag">The disagreement in real cases is mainly about the <strong>data being
+        wrong</strong> — mismatched records, stale income, identity errors — not about which value
+        should win.</label>
+    </div>
+  </div>
+  <div class="card" id="p2-card">
+    <label class="head">Probe 2 — Where is the balance actually struck?</label>
+    <div class="probe">
+      <label><input type="radio" name="p2" value="statute"> In the statute or a published rule — the trade-off is visible and was made by the legislature or through rulemaking</label>
+      <label><input type="radio" name="p2" value="agency"> In agency-set thresholds or criteria — the trade-off lives in internal policy</label>
+      <label><input type="radio" name="p2" value="design"> Inside the system's design — scores, weights, cutoffs chosen in software</label>
+    </div>
+  </div>
+  <div class="card" id="p3-card">
+    <label class="head">Probe 3 — How central is the value choice to the adverse outcome?</label>
+    <div class="probe">
+      <label><input type="radio" name="p3" value="marginal"> Marginal — it surfaces in edge cases, tie-breaks, prioritization, or timing</label>
+      <label><input type="radio" name="p3" value="central"> Central — the adverse decision <em>is</em> the value choice acting on this person</label>
+    </div>
+  </div>
+  <details class="how">
+    <summary>How the level is derived</summary>
+    <p>Probe 1 answered "no" → <strong>Level 0, largely ministerial rules</strong>, whatever the
+       other probes say: without a genuine trade-off there is no KDMA, and disputes belong to the
+       risk-of-error input instead. Probe 1 "yes" with a marginal choice → <strong>Level 1,
+       contested at the margins</strong>. Probe 1 "yes" with a central choice → <strong>Level 2,
+       a core value trade-off</strong>. Probe 2 never changes the level — a trade-off struck
+       visibly in statute still intensifies the duty once it acts through automation — but it
+       changes the justification and, when the balance is struck inside the software, it should
+       also raise the calibrator's Opacity and Proprietary-secrecy inputs.</p>
+  </details>
+  <div class="calibrate-row">
+    <button class="btn btn-blue" id="btn-elicit">Elicit the KDMA</button>
+    <span class="note" id="elicit-note" role="status" hidden></span>
+  </div>
+</section>
+
+<!-- ================= 4 · RESULT ================= -->
+<section class="section wrap" id="result" hidden>
+  <div class="section-head">
+    <span class="eyebrow">Result</span>
+    <h2>The elicited KDMA</h2>
+  </div>
+  <div class="result-card" id="level-card" aria-live="polite">
+    <p class="level-big" id="level-big"></p>
+    <p class="tension-line" id="tension-line"></p>
+    <div id="flags"></div>
+  </div>
+  <div class="result-card">
+    <h3>The written justification — yours to edit</h3>
+    <p class="note" style="margin:0 0 10px">Assembled from your answers. Edit it freely; the export
+       and the memorandum use whatever stands here. A justification you can rewrite is the whole
+       point — the reasoning must be contestable to you.</p>
+    <textarea id="justification" rows="6"></textarea>
+  </div>
+  <div class="result-card" id="safeguard-card">
+    <h3>What this level triggers in the calibrator</h3>
+    <ul class="safeguards" id="safeguards"></ul>
+  </div>
+  <div class="result-card handoff">
+    <h3>Hand it to Module A</h3>
+    <p style="font-size:14px;margin:0 0 6px" id="handoff-text"></p>
+    <div class="calibrate-row" style="margin-top:8px">
+      <button class="btn btn-ghost" id="btn-copy" >Copy as JSON</button>
+      <button class="btn btn-blue" id="btn-word">Download the memorandum (.docx)</button>
+      <span class="note" id="word-note" role="status" hidden></span>
+    </div>
+    <code id="payload-code"></code>
+  </div>
+</section>
+
+<!-- ================= 5 · ABOUT ================= -->
+<section class="section wrap" id="about">
+  <div class="section-head">
+    <span class="eyebrow">About</span>
+    <h2>How this tool works</h2>
+  </div>
+
+  <h3>1. Why contested values intensify the duty</h3>
+  <p>The Countervailing Co-Deployment framework measures what the state owes when it automates
+     decisions over people. Most of that measure is about error and asymmetry. KDMA adds a third
+     thing: some automated decisions do not merely apply a rule — they act out a choice between
+     values that reasonable people weigh differently, program integrity against access to food,
+     speed against individualized assessment. When that happens, the risk in <em>Mathews</em>
+     terms stops being only factual error, which better data could fix, and becomes value
+     misalignment, which only procedure can surface: the person must be able to see the choice,
+     argue against its application to them, and reach a human who owns it. That is why a KDMA
+     above zero triggers the calibrator's four mandatory safeguards — individualized reasons, a
+     route for evidence, human review, and an appeal — whatever the rest of the score says. The
+     concept is adopted from DARPA's In the Moment research line, which characterizes decisions
+     in domains without a single right answer through key decision-making attributes so that
+     algorithms can be aligned to trusted human decision-makers; a benefits system that embeds
+     such choices without surfacing them owes the affected person more, not less.</p>
+
+  <h3>2. What this tool is not</h3>
+  <p>It is not a personality or psychometric assessment. "KDMA" is sometimes expanded elsewhere as
+     key decision-<em>maker</em> attributes and turned into profiles of individuals; this module
+     does the opposite on purpose. It characterizes one decision made by one system, and no answer
+     here says anything about any person's mind.</p>
+
+  <h3>3. The level logic, in one table</h3>
+  <ul>
+    <li><strong>Level 0 · No, largely ministerial rules.</strong> No genuine trade-off: the rule
+        dictates the outcome. Real disputes are factual — feed them to the calibrator's
+        risk-of-error input, not here.</li>
+    <li><strong>Level 1 · Partly, contested at the margins.</strong> A genuine trade-off that
+        surfaces at the edges: tie-breaks, prioritization, timing.</li>
+    <li><strong>Level 2 · Yes, a core value trade-off.</strong> The adverse decision is the value
+        choice acting on the person.</li>
+    <li><strong>Where the balance is struck</strong> — statute, agency policy, or software design —
+        never changes the level, but it changes who must answer for the choice, and a balance
+        struck inside software should raise the calibrator's Opacity and Proprietary-secrecy
+        inputs.</li>
+  </ul>
+
+  <h3>4. License</h3>
+  <p class="license">MIT License
+
+Copyright (c) 2026 The Countervailing Co-Deployment thesis author
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.</p>
+</section>
+
+<footer>
+  <div class="wrap">
+    <p>KDMA Elicitor · Module C of the Countervailing Co-Deployment toolkit.</p>
+    <p>Single file · fully offline · nothing stored · MIT License.</p>
+  </div>
+</footer>
+
+<script>
+"use strict";
+var EXAMPLES = {
+  fraud: {
+    text: "A state system flags benefit claims as fraudulent and imposes penalties on its own, seizing refunds and garnishing wages, sending notice to a dormant online account.",
+    state: "Program integrity", person: "Access to subsistence",
+    p1: "yes", p2: "design", p3: "central"
+  },
+  calc: {
+    text: "A state system computes the monthly benefit amount by applying the statutory formula — income, deductions, allotment table — to the case record.",
+    state: "Uniformity", person: "Access to subsistence",
+    p1: "no", p2: "statute", p3: "marginal"
+  },
+  work: {
+    text: "A state system screens working-age adults against the 80-hour work requirement and counts months toward the time limit, deciding who keeps benefits.",
+    state: "Deterrence", person: "Continuity of benefits",
+    p1: "yes", p2: "agency", p3: "marginal"
+  }
+};
+var LEVELS = [
+  "Level 0 · No, largely ministerial rules",
+  "Level 1 · Partly, contested at the margins",
+  "Level 2 · Yes, a core value trade-off"
+];
+var SAFEGUARDS = [
+  "Advance notice with individualized reasons, not a code — the person must see the value choice acting on their case.",
+  "A route to submit additional evidence before the adverse action takes effect.",
+  "Mandatory, meaningful human review before adverse action — a person who owns the trade-off.",
+  "An appeal process, a usable route to challenge the output after it issues."
+];
+</script>
+
+<script>
+"use strict";
+(function () {
+  var $ = function (s) { return document.querySelector(s); };
+  var lastResult = null;
+
+  function esc(s) {
+    return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  }
+
+  /* ---------- chips: single-select per group ---------- */
+  function wireChips(groupSel, customSel) {
+    var group = document.querySelectorAll(groupSel + " .chip");
+    group.forEach(function (chip) {
+      chip.addEventListener("click", function () {
+        var was = chip.getAttribute("aria-pressed") === "true";
+        group.forEach(function (c) { c.setAttribute("aria-pressed", "false"); });
+        if (!was) chip.setAttribute("aria-pressed", "true");
+        if (!was && customSel) $(customSel).value = "";
+      });
+    });
+  }
+  wireChips("#state-chips", "#state-custom");
+  wireChips("#person-chips", "#person-custom");
+  function chipValue(groupSel, customSel) {
+    var pressed = document.querySelector(groupSel + ' .chip[aria-pressed="true"]');
+    var custom = $(customSel).value.trim();
+    return custom || (pressed ? pressed.getAttribute("data-v") : "");
+  }
+
+  /* ---------- examples ---------- */
+  document.querySelectorAll("[data-example]").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      var ex = EXAMPLES[btn.getAttribute("data-example")];
+      document.querySelectorAll("[data-example]").forEach(function (b) { b.setAttribute("aria-pressed", "false"); });
+      btn.setAttribute("aria-pressed", "true");
+      $("#q-decision").value = ex.text;
+      $("#state-custom").value = ""; $("#person-custom").value = "";
+      document.querySelectorAll("#state-chips .chip").forEach(function (c) {
+        c.setAttribute("aria-pressed", String(c.getAttribute("data-v") === ex.state));
+      });
+      document.querySelectorAll("#person-chips .chip").forEach(function (c) {
+        c.setAttribute("aria-pressed", String(c.getAttribute("data-v") === ex.person));
+      });
+      ["p1", "p2", "p3"].forEach(function (p) {
+        var r = document.querySelector('input[name="' + p + '"][value="' + ex[p] + '"]');
+        if (r) { r.checked = true; }
+      });
+      $("#fact-flag").checked = false;
+      syncProbeState();
+    });
+  });
+
+  /* ---------- misfit door ---------- */
+  $("#btn-misfit").addEventListener("click", function () {
+    var open = $("#misfit-note").hidden;
+    $("#misfit-note").hidden = !open;
+    this.setAttribute("aria-expanded", String(open));
+  });
+
+  /* ---------- probe gating: P1 = no disables P3 ---------- */
+  function p(name) {
+    var r = document.querySelector('input[name="' + name + '"]:checked');
+    return r ? r.value : "";
+  }
+  function syncProbeState() {
+    var ministerial = p("p1") === "no";
+    document.querySelectorAll('input[name="p3"]').forEach(function (r) { r.disabled = ministerial; });
+    $("#p3-card").style.opacity = ministerial ? ".45" : "1";
+  }
+  document.querySelectorAll('input[name="p1"]').forEach(function (r) {
+    r.addEventListener("change", syncProbeState);
+  });
+
+  /* ---------- the level logic ---------- */
+  function deriveLevel() {
+    if (p("p1") === "no") return 0;
+    if (p("p3") === "central") return 2;
+    if (p("p3") === "marginal") return 1;
+    return null; /* p3 unanswered while p1 = yes */
+  }
+
+  function buildJustification(v) {
+    var out = [];
+    out.push("The system " + (v.decision ? "under review " : "") + "decides: " + (v.decision || "[describe the decision]") + ".");
+    if (v.level === 0) {
+      out.push("Probe 1 finds no genuine trade-off: the rule dictates the outcome, and two officials following it would not diverge on the same facts. The decision sits at KDMA level 0, largely ministerial rules." +
+        (v.state && v.person ? " The stakes named — " + v.state + " against " + v.person + " — are real, but the balance between them was already fixed before this system runs." : ""));
+      out.push("Disputes in cases like this are factual — wrong data, mismatched records — and belong to the calibrator's risk-of-error input, not to the KDMA setting.");
+    } else {
+      out.push("The decision trades " + (v.state || "[state-side value]") + " against " + (v.person || "[claimant-side value]") +
+        ". Probe 1 finds a genuine trade-off: on the same facts, reasonable officials weighing these values differently could decide differently.");
+      out.push(v.level === 2
+        ? "The value choice is central — the adverse decision is that choice acting on the person — placing the decision at KDMA level 2, a core value trade-off."
+        : "The value choice surfaces at the margins — edge cases, tie-breaks, prioritization — placing the decision at KDMA level 1, contested at the margins.");
+      if (v.p2 === "design") out.push("The balance is struck inside the system's own design — scores, weights, cutoffs chosen in software — so the choice is least visible exactly where it acts, and the calibrator's Opacity and Proprietary-secrecy inputs should reflect that.");
+      if (v.p2 === "agency") out.push("The balance is struck in agency-set thresholds and criteria, one step removed from public rulemaking; the agency owns the choice and must answer for it.");
+      if (v.p2 === "statute") out.push("The balance is struck visibly in statute or published rule. Visibility locates responsibility, but it does not discharge the duty: once the choice acts through automation on this person, the safeguards that let them contest its application still apply.");
+    }
+    if (v.factFlag) out.push("Caution recorded: in real cases the disagreement is reported to be mainly about the data being wrong. That pattern is error risk, not value tension — if it dominates, prefer the lower KDMA level and carry the dispute through the calibrator's risk-of-error input instead.");
+    return out.join(" ");
+  }
+
+  function readInputs() {
+    return {
+      decision: $("#q-decision").value.trim(),
+      state: chipValue("#state-chips", "#state-custom"),
+      person: chipValue("#person-chips", "#person-custom"),
+      p1: p("p1"), p2: p("p2"), p3: p("p3"),
+      factFlag: $("#fact-flag").checked
+    };
+  }
+
+  $("#btn-elicit").addEventListener("click", function () {
+    var note = $("#elicit-note");
+    var v = readInputs();
+    if (!v.p1) {
+      note.textContent = "Answer Probe 1 first — everything hangs on whether a genuine trade-off exists.";
+      note.hidden = false;
+      return;
+    }
+    v.level = deriveLevel();
+    if (v.level === null) {
+      note.textContent = "Answer Probe 3 — with a genuine trade-off, the level turns on how central the choice is.";
+      note.hidden = false;
+      return;
+    }
+    if (v.level > 0 && (!v.state || !v.person)) {
+      note.textContent = "Name both values first — a trade-off needs its two sides on the record.";
+      note.hidden = false;
+      return;
+    }
+    note.hidden = true;
+    lastResult = v;
+    render(v);
+  });
+
+  function render(v) {
+    var card = $("#level-card");
+    card.className = "result-card level-" + v.level;
+    $("#level-big").textContent = LEVELS[v.level];
+    $("#tension-line").textContent = v.level === 0
+      ? "No values-in-tension line — the balance was fixed before the system runs."
+      : "Values in tension: " + v.state + " vs " + v.person;
+    var flags = [];
+    if (v.factFlag) flags.push("You marked the real-world disputes as mainly data errors. That is the risk-of-error input's territory (f2 in the calibrator), not KDMA — the justification records the caution.");
+    if (v.level > 0 && v.p2 === "design") flags.push("The balance is struck inside the software. When you calibrate, raise Opacity (reasons for the output) and Proprietary secrecy accordingly — the elicitor cannot set those for you.");
+    $("#flags").innerHTML = flags.map(function (f) { return '<div class="flag">' + esc(f) + "</div>"; }).join("");
+    $("#justification").value = buildJustification(v);
+    $("#safeguards").innerHTML = v.level === 0
+      ? '<li>At level 0 the KDMA input adds nothing to the score and triggers no mandatory package — the duty, if any, comes from the other inputs.</li>'
+      : SAFEGUARDS.map(function (s) { return "<li>" + esc(s) + "</li>"; }).join("");
+    renderHandoff(v);
+    $("#result").hidden = false;
+    if ($("#result").scrollIntoView) {
+      try { $("#result").scrollIntoView({ behavior: "smooth", block: "start" }); } catch (e) {}
+    }
+  }
+
+  function buildPayload(v) {
+    return {
+      desc: v.decision || "",
+      kdma: v.level,
+      tension: v.level === 0 ? "" : v.state + " vs " + v.person
+    };
+  }
+  function renderHandoff(v) {
+    var payload = buildPayload(v);
+    var hash = btoa(unescape(encodeURIComponent(JSON.stringify(payload))))
+      .replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+    $("#handoff-text").innerHTML = 'This payload fills the calibrator\u2019s description and Step 4 only — ' +
+      'the ten sliders stay yours to set, and the calibrator will not compute a result until you press Calibrate. ' +
+      '<a id="duty-link" href="due-process-calibrator.html#ccd=' + hash + '">Open the Due Process Calibrator pre-filled</a> ' +
+      '(same folder), or copy the JSON below.';
+    $("#payload-code").textContent = JSON.stringify(payload);
+  }
+
+  $("#btn-copy").addEventListener("click", function () {
+    if (!lastResult) return;
+    var note = $("#word-note");
+    var text = JSON.stringify(buildPayload(lastResult));
+    function done(ok) {
+      note.textContent = ok ? "Copied." : "Copy didn't work in this viewer — select the JSON by hand.";
+      note.hidden = false;
+      setTimeout(function () { note.hidden = true; }, 2500);
+    }
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(function () { done(true); }, function () { done(false); });
+      } else { done(false); }
+    } catch (e) { done(false); }
+  });
+
+  /* ---------- the memorandum (.docx, family machinery) ---------- */
+  function utf8(s) {
+    var out = [], i, c;
+    for (i = 0; i < s.length; i++) {
+      c = s.codePointAt(i);
+      if (c > 0xFFFF) i++;
+      if (c < 0x80) out.push(c);
+      else if (c < 0x800) out.push(0xC0 | (c >> 6), 0x80 | (c & 63));
+      else if (c < 0x10000) out.push(0xE0 | (c >> 12), 0x80 | ((c >> 6) & 63), 0x80 | (c & 63));
+      else out.push(0xF0 | (c >> 18), 0x80 | ((c >> 12) & 63), 0x80 | ((c >> 6) & 63), 0x80 | (c & 63));
+    }
+    return new Uint8Array(out);
+  }
+  var CRC_TABLE = (function () {
+    var t = new Uint32Array(256), c, n, k;
+    for (n = 0; n < 256; n++) { c = n; for (k = 0; k < 8; k++) c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1); t[n] = c >>> 0; }
+    return t;
+  })();
+  function crc32(b) {
+    var c = 0xFFFFFFFF, i;
+    for (i = 0; i < b.length; i++) c = CRC_TABLE[(c ^ b[i]) & 0xFF] ^ (c >>> 8);
+    return (c ^ 0xFFFFFFFF) >>> 0;
+  }
+  function zipStore(files) {
+    var chunks = [], central = [], offset = 0;
+    var now = new Date();
+    var dt = ((now.getHours() << 11) | (now.getMinutes() << 5) | (now.getSeconds() >> 1)) & 0xFFFF;
+    var dd = (((now.getFullYear() - 1980) << 9) | ((now.getMonth() + 1) << 5) | now.getDate()) & 0xFFFF;
+    function u16(v) { return [v & 255, (v >>> 8) & 255]; }
+    function u32(v) { return [v & 255, (v >>> 8) & 255, (v >>> 16) & 255, (v >>> 24) & 255]; }
+    files.forEach(function (f) {
+      var name = utf8(f.name);
+      var data = typeof f.data === "string" ? utf8(f.data) : f.data;
+      var crc = crc32(data);
+      var head = new Uint8Array([].concat(u32(0x04034b50), u16(20), u16(0), u16(0), u16(dt), u16(dd),
+        u32(crc), u32(data.length), u32(data.length), u16(name.length), u16(0)));
+      chunks.push(head, name, data);
+      central.push({ name: name, crc: crc, size: data.length, off: offset });
+      offset += head.length + name.length + data.length;
+    });
+    var cdStart = offset, cdLen = 0;
+    central.forEach(function (e) {
+      var rec = new Uint8Array([].concat(u32(0x02014b50), u16(20), u16(20), u16(0), u16(0), u16(dt), u16(dd),
+        u32(e.crc), u32(e.size), u32(e.size), u16(e.name.length), u16(0), u16(0), u16(0), u16(0), u32(0), u32(e.off)));
+      chunks.push(rec, e.name);
+      cdLen += rec.length + e.name.length;
+    });
+    chunks.push(new Uint8Array([].concat(u32(0x06054b50), u16(0), u16(0), u16(central.length), u16(central.length),
+      u32(cdLen), u32(cdStart), u16(0))));
+    var total = 0; chunks.forEach(function (c) { total += c.length; });
+    var out = new Uint8Array(total), pos = 0;
+    chunks.forEach(function (c) { out.set(c, pos); pos += c.length; });
+    return out;
+  }
+  function xesc(s) {
+    return String(s).replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, "")
+      .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  }
+  function wPara(text, bold) {
+    var t = xesc(text).replace(/\n/g, '</w:t><w:br/><w:t xml:space="preserve">');
+    return '<w:p><w:pPr><w:spacing w:before="0" w:after="150"/></w:pPr><w:r>' +
+      (bold ? "<w:rPr><w:b/></w:rPr>" : "") +
+      '<w:t xml:space="preserve">' + t + "</w:t></w:r></w:p>";
+  }
+  function buildMemoParts(v) {
+    var XH = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>';
+    var stamp = new Date().toISOString().replace(/\.\d{3}Z$/, "Z");
+    var P2 = { statute: "in the statute or a published rule", agency: "in agency-set thresholds or criteria", design: "inside the system's design" };
+    var paras = [
+      wPara("KDMA Memorandum", true),
+      wPara("Countervailing Co-Deployment framework \u00b7 Module C \u00b7 " +
+        new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })),
+      wPara("The decision under review", true),
+      wPara(v.decision || "No description provided."),
+      wPara("Elicited level", true),
+      wPara(LEVELS[v.level] + (v.level > 0 ? " \u2014 values in tension: " + v.state + " vs " + v.person : "")),
+      wPara("Probe record", true),
+      wPara("Probe 1, genuine trade-off: " + (v.p1 === "yes" ? "yes" : "no, the rule dictates the outcome") + ". " +
+        (v.p1 === "yes" ? "Probe 3, centrality: " + v.p3 + ". " : "") +
+        (v.p2 ? "Probe 2, where the balance is struck: " + (P2[v.p2] || v.p2) + "." : "") +
+        (v.factFlag ? " Caution: real-world disputes reported as mainly factual (data errors)." : "")),
+      wPara("Justification", true),
+      wPara($("#justification").value.trim() || buildJustification(v)),
+      wPara("Standing caveat", true),
+      wPara("This memorandum characterizes a decision made by an automated system. It profiles no individual, carries no legal authority, and is a design instrument of the Countervailing Co-Deployment framework, to be read with the Due Process Calibrator result beside it.")
+    ];
+    var documentXml = XH +
+      '<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body>' +
+      paras.join("") +
+      '<w:sectPr><w:pgSz w:w="12240" w:h="15840"/><w:pgMar w:top="1440" w:right="1440" w:bottom="1440" w:left="1440"/></w:sectPr>' +
+      "</w:body></w:document>";
+    var contentTypes = XH +
+      '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">' +
+      '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>' +
+      '<Default Extension="xml" ContentType="application/xml"/>' +
+      '<Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>' +
+      '<Override PartName="/docProps/core.xml" ContentType="application/vnd.openxmlformats-package.core-properties+xml"/></Types>';
+    var relsRoot = XH +
+      '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' +
+      '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/>' +
+      '<Relationship Id="rId2" Type="http://schemas.openxmlformats.org/package/2006/relationships/metadata/core-properties" Target="docProps/core.xml"/></Relationships>';
+    var coreXml = XH +
+      '<cp:coreProperties xmlns:cp="http://schemas.openxmlformats.org/package/2006/metadata/core-properties"' +
+      ' xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/"' +
+      ' xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">' +
+      "<dc:title>KDMA Memorandum</dc:title><dc:creator>KDMA Elicitor</dc:creator>" +
+      '<dcterms:created xsi:type="dcterms:W3CDTF">' + stamp + "</dcterms:created>" +
+      '<dcterms:modified xsi:type="dcterms:W3CDTF">' + stamp + "</dcterms:modified></cp:coreProperties>";
+    return [
+      { name: "[Content_Types].xml", data: contentTypes },
+      { name: "_rels/.rels", data: relsRoot },
+      { name: "docProps/core.xml", data: coreXml },
+      { name: "word/document.xml", data: documentXml }
+    ];
+  }
+  $("#btn-word").addEventListener("click", function () {
+    var note = $("#word-note");
+    if (!lastResult) return;
+    try {
+      var bytes = zipStore(buildMemoParts(lastResult));
+      var blob = new Blob([bytes], { type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document" });
+      var url = URL.createObjectURL(blob);
+      var aEl = document.createElement("a");
+      aEl.href = url;
+      aEl.download = "kdma-memorandum-" + new Date().toISOString().slice(0, 10) + ".docx";
+      document.body.appendChild(aEl); aEl.click(); document.body.removeChild(aEl);
+      setTimeout(function () { URL.revokeObjectURL(url); }, 4000);
+      note.hidden = true;
+    } catch (e) {
+      note.textContent = "Download is unavailable in this viewer \u2014 use Copy as JSON instead.";
+      note.hidden = false;
+    }
+  });
+
+  /* ---------- clear ---------- */
+  $("#btn-erase").addEventListener("click", function () {
+    $("#q-decision").value = "";
+    $("#state-custom").value = ""; $("#person-custom").value = "";
+    document.querySelectorAll(".chip").forEach(function (c) { c.setAttribute("aria-pressed", "false"); });
+    document.querySelectorAll('input[type="radio"]').forEach(function (r) { r.checked = false; r.disabled = false; });
+    $("#fact-flag").checked = false;
+    $("#p3-card").style.opacity = "1";
+    $("#misfit-note").hidden = true;
+    $("#btn-misfit").setAttribute("aria-expanded", "false");
+    $("#result").hidden = true;
+    lastResult = null;
+  });
+})();
+</script>
+</body>
+</html>

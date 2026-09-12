@@ -1,0 +1,1856 @@
+<!DOCTYPE html>
+<!--
+  Due Process Calibrator  ·  v3, thesis-aligned
+  ==============================================
+  Como usar. Salve este arquivo como due-process-calibrator.html e abra
+  no navegador (duplo clique). Funciona 100% offline, sem internet e sem
+  dependencias externas. As analises salvas ficam no localStorage do
+  navegador deste aparelho.
+
+  O que faz. NAO e uma ferramenta judicial e nao estima chances de exito
+  em juizo. E o medidor de devido processo do framework de Countervailing
+  Co-Deployment (CCD). Dado um tipo de sistema automatizado operado pelo
+  estado, avaliado nu, antes de qualquer salvaguarda, o medidor roda o
+  passo de classificacao do framework (Cap. 6 da tese), magnitude da
+  assimetria, severidade e reversibilidade do dano, vulnerabilidade da
+  populacao, em paralelo com os tres fatores de Mathews v. Eldridge,
+  424 U.S. 319 (1976), a mesma pergunta em dois registros, e devolve a
+  intensidade do dever e o NIVEL EXIGIDO de co-deployment, de 0 a 3,
+  isto e, o que a ferramenta countervailing do lado do claimant precisa
+  entregar. Inclui uma entrada manual de KDMA, key decision-making
+  attributes, que eleva o dever quando o sistema codifica julgamentos de
+  valor contestados. Ancoras de caso verificadas (Goldberg, Perdue,
+  Houston, Bauserman, K.W. v. Armstrong, Loomis). Os pesos numericos sao
+  escolhas de estudo, sem autoridade legal.
+-->
+<!--
+  MIT License
+
+  Copyright (c) 2026 Due Process Calibrator
+
+  Permission is hereby granted, free of charge, to any person obtaining
+  a copy of this software and associated documentation files (the
+  "Software"), to deal in the Software without restriction, including
+  without limitation the rights to use, copy, modify, merge, publish,
+  distribute, sublicense, and/or sell copies of the Software, and to
+  permit persons to whom the Software is furnished to do so, subject to
+  the following conditions:
+
+  The above copyright notice and this permission notice shall be
+  included in all copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+  EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+  MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+  NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+  BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+  ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+-->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Offline due process meter for the Countervailing Co-Deployment framework: classify a government-run automated system, bare, and read the duty intensity and the required co-deployment level, 0 to 3, that the claimant-side countervailing tool must deliver. Mathews v. Eldridge runs as the parallel register, with a manual KDMA input for contested value judgments.">
+<meta name="theme-color" content="#0f172a">
+<title>Due Process Calibrator</title>
+<style>
+/* ==========================================================
+   1. TOKENS   2. BASE   3. HEADER & INTRO   4. FACTORS
+   5. GAUGE & RESULTS    6. SAVED            7. MOTION, A11Y
+   Blue = pressure toward more process.
+   Red  = the agency-burden counterweight.
+   ========================================================== */
+
+/* ---------- 1. TOKENS ---------- */
+:root{
+  --ink:#0f172a;
+  --surface:#1e293b;
+  --surface-2:#26344b;
+  --text:#e2e8f0;
+  --muted:#94a3b8;
+  --blue:#3b82f6;
+  --blue-soft:rgba(59,130,246,.14);
+  --red:#c8102e;
+  --red-bright:#ef5468;
+  --red-soft:rgba(200,16,46,.16);
+  --line:rgba(148,163,184,.18);
+  --serif:"Iowan Old Style",Palatino,"Palatino Linotype","Book Antiqua",Georgia,serif;
+  --sans:system-ui,-apple-system,"Segoe UI",Roboto,Ubuntu,sans-serif;
+  --mono:ui-monospace,"SF Mono",SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;
+  --radius:14px;
+  --shadow:0 12px 32px rgba(2,6,23,.45);
+}
+
+/* ---------- 2. BASE ---------- */
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;background:var(--ink);color:var(--text);
+  font:16px/1.65 var(--sans);-webkit-font-smoothing:antialiased;
+}
+a{color:var(--blue);text-decoration:none}
+a:hover{text-decoration:underline}
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
+textarea{font:inherit;color:var(--text)}
+.wrap{max-width:880px;margin-inline:auto;padding-inline:20px}
+.eyebrow{
+  font:600 12px/1 var(--mono);letter-spacing:.14em;
+  text-transform:uppercase;color:var(--blue);
+}
+.cite{font:500 12.5px/1.5 var(--mono);color:var(--muted)}
+:focus-visible{outline:2px solid var(--blue);outline-offset:2px;border-radius:6px}
+.visually-hidden{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.section{padding-block:40px;border-top:1px solid var(--line);scroll-margin-top:74px}
+.section-head{margin-bottom:22px}
+.section-head h2{font:700 clamp(22px,4vw,30px)/1.2 var(--serif);margin:8px 0 6px}
+.section-head p{margin:0;color:var(--muted);max-width:64ch}
+.btn{
+  border-radius:10px;padding:12px 20px;font:600 14px/1 var(--sans);
+  transition:transform .12s ease,opacity .12s ease;
+}
+.btn:hover{transform:translateY(-1px)}
+.btn:disabled{opacity:.4;cursor:not-allowed;transform:none}
+.btn-blue{background:var(--blue);color:#fff}
+.btn-red{background:transparent;color:#f0abb4;border:1px solid var(--red)}
+.btn-ghost{background:var(--ink);border:1px solid var(--line);color:var(--muted)}
+.btn-ghost:hover{color:var(--text)}
+.note{color:var(--muted);font-size:13px}
+
+/* ---------- 3. HEADER & INTRO ---------- */
+header.top{padding:56px 0 34px}
+header.top h1{
+  font:700 clamp(32px,7vw,52px)/1.1 var(--serif);
+  margin:14px 0 12px;letter-spacing:-.01em;
+}
+header.top h1 .tick{color:var(--red);font-style:italic}
+header.top p.lede{color:var(--muted);max-width:66ch;margin:0 0 18px;font-size:17px}
+.honesty{
+  display:flex;gap:10px;align-items:flex-start;
+  background:var(--surface);border:1px solid var(--line);
+  border-left:3px solid var(--red);border-radius:10px;
+  padding:12px 14px;max-width:66ch;
+}
+.honesty p{margin:0;font-size:13.5px;color:var(--text)}
+.honesty .cite{display:block;margin-top:4px}
+
+/* system description */
+#sys-desc{
+  width:100%;min-height:110px;resize:vertical;
+  background:var(--surface);border:1px solid var(--line);
+  border-radius:12px;padding:14px;line-height:1.55;
+}
+#sys-desc::placeholder{color:var(--muted)}
+#sys-desc:focus{border-color:var(--blue);outline:none}
+.profiles{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.profile{
+  border:1px solid var(--line);border-radius:999px;
+  padding:8px 14px;font:600 13px/1 var(--sans);color:var(--muted);
+  transition:all .15s ease;
+}
+.profile:hover{color:var(--text);border-color:var(--blue)}
+
+/* ---------- 4. FACTORS ---------- */
+.factor{
+  background:var(--surface);border:1px solid var(--line);
+  border-radius:var(--radius);padding:16px 16px 14px;margin-bottom:14px;
+}
+.factor-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap}
+.factor-head .label{
+  font:600 12px/1.4 var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--blue);
+}
+.factor.counter .factor-head .label{color:var(--red-bright)}
+.factor-head output{
+  font:600 12.5px/1.4 var(--mono);color:var(--text);
+  background:var(--ink);border:1px solid var(--line);
+  border-radius:8px;padding:4px 9px;white-space:nowrap;
+}
+.factor p.desc{margin:8px 0 4px;font-size:14px}
+.factor p.anchor{margin:0 0 12px;font:500 12.5px/1.5 var(--mono);color:var(--muted)}
+.range{
+  -webkit-appearance:none;appearance:none;width:100%;height:6px;
+  border-radius:99px;background:var(--ink);outline:none;display:block;
+}
+.range::-webkit-slider-thumb{
+  -webkit-appearance:none;appearance:none;width:18px;height:18px;border-radius:50%;
+  background:var(--blue);border:2px solid var(--ink);
+  box-shadow:0 0 0 2px var(--blue);cursor:pointer;
+}
+.range::-moz-range-thumb{
+  width:14px;height:14px;border-radius:50%;background:var(--blue);
+  border:2px solid var(--ink);box-shadow:0 0 0 2px var(--blue);cursor:pointer;
+}
+.factor.counter .range::-webkit-slider-thumb{background:var(--red-bright);box-shadow:0 0 0 2px var(--red)}
+.factor.counter .range::-moz-range-thumb{background:var(--red-bright);box-shadow:0 0 0 2px var(--red)}
+.ends{display:flex;justify-content:space-between;margin-top:8px}
+.ends span{font:500 11px/1.4 var(--mono);color:var(--muted);max-width:46%}
+.ends span:last-child{text-align:right}
+
+details.how{
+  background:var(--surface);border:1px solid var(--line);
+  border-radius:12px;padding:12px 16px;margin:6px 0 0;
+}
+details.how summary{cursor:pointer;font:600 13.5px/1.4 var(--sans);color:var(--muted)}
+details.how summary:hover{color:var(--text)}
+details.how p{font-size:13.5px;color:var(--muted);margin:10px 0 0}
+
+.calibrate-row{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-top:20px}
+#stale{font:500 12.5px/1.4 var(--mono);color:var(--red-bright)}
+#stale[hidden]{display:none}
+
+/* ---------- 5. GAUGE & RESULTS ---------- */
+#results[hidden]{display:none}
+.gauge{
+  background:var(--surface);border:1px solid var(--line);
+  border-radius:var(--radius);padding:22px 18px 16px;margin-bottom:18px;
+}
+.beam{position:relative;height:10px;border-radius:99px;margin:26px 6px 6px;
+  background:linear-gradient(90deg,var(--ink) 0%,var(--blue-soft) 100%);
+  border:1px solid var(--line);
+}
+.beam .zone-tick{position:absolute;top:-6px;bottom:-6px;width:1px;background:var(--line)}
+.needle{
+  position:absolute;top:-12px;width:2px;height:34px;background:var(--text);
+  border-radius:2px;transition:left .6s ease;transform:translateX(-1px);
+}
+.needle::after{
+  content:"";position:absolute;top:-7px;left:50%;transform:translateX(-50%);
+  width:11px;height:11px;border-radius:50%;
+  background:var(--blue);border:2px solid var(--ink);box-shadow:0 0 0 2px var(--blue);
+}
+.zone-labels{display:flex;justify-content:space-between;margin:12px 6px 0}
+.zone-labels span{font:500 11px/1.4 var(--mono);color:var(--muted);letter-spacing:.08em;text-transform:uppercase}
+.readout{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap;margin-top:16px}
+.verdict{font:700 clamp(22px,4.4vw,30px)/1.2 var(--serif);margin:0}
+.readout .score{font:600 13px/1.4 var(--mono);color:var(--muted)}
+.gauge .honesty{margin-top:14px;max-width:none}
+
+.result-card{
+  background:var(--surface);border:1px solid var(--line);
+  border-radius:var(--radius);padding:18px;margin-bottom:16px;
+}
+.result-card h3{
+  font:600 12px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;
+  color:var(--blue);margin:0 0 12px;
+}
+#analysis p{margin:0 0 12px;font-size:14.5px}
+#analysis p:last-child{margin-bottom:0}
+#analysis em{font-style:italic}
+.safeguards{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.safeguards li{
+  background:var(--ink);border:1px solid var(--line);border-left:3px solid var(--blue);
+  border-radius:10px;padding:11px 13px;font-size:14px;
+}
+.safeguards li .cite{display:block;margin-top:3px}
+
+/* ---------- 6. SAVED ---------- */
+.saved-list{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.saved-list li{
+  background:var(--surface);border:1px solid var(--line);border-radius:12px;
+  padding:12px 14px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+}
+.saved-list .name{font-weight:600;font-size:14px;flex:1 1 220px}
+.saved-list .meta{font:500 11.5px/1.5 var(--mono);color:var(--muted)}
+.saved-list .badge{
+  font:600 12px/1 var(--mono);padding:5px 9px;border-radius:7px;
+  background:var(--blue-soft);color:#93c5fd;white-space:nowrap;
+}
+.saved-actions{display:flex;gap:8px}
+.saved-actions .btn{padding:8px 12px;font-size:12.5px}
+#saved-empty{color:var(--muted);font-style:italic;font-size:14px}
+#save-note[hidden]{display:none}
+
+footer{border-top:1px solid var(--line);padding:26px 0 40px;margin-top:48px}
+footer p{color:var(--muted);font-size:13px;margin:4px 0}
+
+/* ---------- 7. MOTION, A11Y, RESPONSIVE ---------- */
+.reveal{opacity:0;transform:translateY(12px);transition:opacity .5s ease,transform .5s ease}
+.reveal.in{opacity:1;transform:none}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+  html{scroll-behavior:auto}
+  .reveal{opacity:1;transform:none}
+}
+@media (min-width:760px){
+  .factor-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .factor-grid .factor{margin-bottom:0}
+  .section{padding-block:52px}
+}
+
+/* ---------- v3 additions, KDMA input & dimensions card ---------- */
+.kdma-row{display:grid;gap:12px;grid-template-columns:1fr;margin-top:4px}
+.kdma-field label{display:block;font:600 12px/1.4 var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--blue);margin-bottom:8px}
+.kdma-field select,.kdma-field input[type="text"]{
+  width:100%;padding:12px 14px;font:inherit;color:var(--text);
+  background:var(--ink);border:1px solid var(--line);border-radius:10px;
+}
+.kdma-field select:focus,.kdma-field input[type="text"]:focus{border-color:var(--blue);outline:none}
+.kdma-field input::placeholder{color:var(--muted)}
+.guide-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(310px,1fr));gap:12px}
+.g-q{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:14px}
+.g-q label{display:block;font-size:14px;font-weight:600;margin-bottom:8px}
+.g-q select,.g-q input[type="text"]{
+  width:100%;padding:10px 12px;font:inherit;font-size:14px;color:var(--text);
+  background:var(--ink);border:1px solid var(--line);border-radius:10px;
+}
+.g-q select:focus,.g-q input[type="text"]:focus{border-color:var(--blue);outline:none}
+.g-tag{display:block;margin-top:8px;font:600 10.5px/1.4 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.guide-actions{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:4px 0 16px}
+#guide-note{color:var(--blue)}
+.dims{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.dims li{
+  background:var(--ink);border:1px solid var(--line);border-left:3px solid var(--red);
+  border-radius:10px;padding:11px 13px;font-size:13.5px;
+}
+.dims li strong{
+  display:block;font:600 11px/1.4 var(--mono);letter-spacing:.12em;
+  text-transform:uppercase;color:#f0abb4;margin-bottom:4px;
+}
+.dims li .floor{display:block;margin-top:5px;font:500 12px/1.5 var(--mono);color:var(--muted)}
+@media (min-width:760px){
+  .kdma-row{grid-template-columns:280px 1fr}
+}
+
+/* ---------- v3 nav bar ---------- */
+.nav{
+  position:sticky;top:0;z-index:40;
+  background:rgba(15,23,42,.82);backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--line);
+}
+.nav .wrap{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:54px}
+.nav .brand{font:700 15px/1 var(--serif);color:var(--text)}
+.nav .brand .tick{color:var(--red);font-style:italic}
+.nav-links{display:flex;gap:2px;flex-wrap:wrap}
+.nav-links a{color:var(--muted);font:600 12.5px/1 var(--sans);padding:8px 10px;border-radius:8px}
+.nav-links a:hover{color:var(--text);background:var(--surface);text-decoration:none}
+
+/* ---------- v3 manual / help ---------- */
+.manual{max-width:66ch}
+.manual h3{
+  font:700 clamp(19px,3.4vw,24px)/1.25 var(--serif);
+  margin:30px 0 10px;scroll-margin-top:74px;
+}
+.manual h3:first-of-type{margin-top:8px}
+.manual h4{font:600 12px/1.4 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--blue);margin:20px 0 8px}
+.manual p{margin:0 0 12px;font-size:15px}
+.manual ol,.manual ul{margin:0 0 14px;padding-left:22px}
+.manual li{margin:0 0 8px;font-size:15px}
+.manual li strong{color:var(--text)}
+.manual .step-card{
+  background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--blue);
+  border-radius:12px;padding:14px 16px;margin:0 0 12px;
+}
+.manual .step-card .cite{display:block;margin-top:6px}
+.manual .walk{
+  background:var(--surface);border:1px solid var(--line);border-radius:12px;
+  padding:16px 18px;margin:0 0 14px;
+}
+.manual .walk .badge{
+  display:inline-block;font:600 12px/1 var(--mono);padding:5px 9px;border-radius:7px;
+  background:var(--red-soft);color:#f0abb4;margin:2px 0 10px;
+}
+.manual .callout{
+  display:flex;gap:10px;background:var(--surface);border:1px solid var(--line);
+  border-left:3px solid var(--red);border-radius:10px;padding:12px 14px;margin:0 0 14px;
+}
+.manual .callout p{margin:0;font-size:13.5px}
+.manual table{width:100%;border-collapse:collapse;margin:0 0 16px;font-size:13.5px}
+.manual th,.manual td{border:1px solid var(--line);padding:9px 11px;text-align:left;vertical-align:top}
+.manual th{background:var(--surface);font:600 11.5px/1.4 var(--mono);letter-spacing:.06em;color:var(--blue)}
+.manual .src{font:500 12.5px/1.6 var(--mono);color:var(--muted)}
+.manual .src li{margin-bottom:6px}
+.manual details{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 16px;margin:0 0 12px}
+.manual details summary{cursor:pointer;font:600 14px/1.4 var(--sans);color:var(--text)}
+</style>
+</head>
+<body id="top">
+
+<!-- ================= NAV ================= -->
+<header class="nav">
+  <div class="wrap">
+    <span class="brand">Due Process <span class="tick">Calibrator</span></span>
+    <nav class="nav-links" aria-label="Main navigation">
+      <a href="#system">System</a>
+      <a href="#classify">Classify</a>
+      <a href="#characteristics">Asymmetry</a>
+      <a href="#kdma-step">KDMA</a>
+      <a href="#manual">Manual</a>
+    </nav>
+  </div>
+</header>
+
+<!-- ================= HEADER ================= -->
+<header class="top wrap">
+  <span class="eyebrow">Due process meter &middot; Countervailing Co-Deployment &middot; Mathews balancing</span>
+  <h1>Due Process <span class="tick">Calibrator</span></h1>
+  <p class="lede">Pick or describe a government-run automated system and rate it bare, before any
+     safeguards. The meter runs the CCD framework's classification step alongside the
+     <em>Mathews v. Eldridge</em> factors, the same question in two registers, and returns the
+     duty intensity and the required co-deployment level, 0 to 3, what the claimant-side
+     countervailing tool must deliver.</p>
+  <div class="honesty" role="note">
+    <p><strong>A design instrument, not a court.</strong> This meter does not estimate anyone's
+       chances in litigation. It sizes the state's due-process obligation for a system profile
+       and translates it into the co-deployment level the framework requires, so the
+       countervailing tool can be built to measure.
+       <span class="cite">Framework, CC Deployment thesis, chs. 4 to 10 &middot; case anchors verified as of July 2026 &middot; study heuristic &middot; not legal advice</span></p>
+  </div>
+</header>
+
+<!-- ================= 1 · THE SYSTEM ================= -->
+<section class="section wrap" id="system">
+  <div class="section-head reveal">
+    <span class="eyebrow">Step 1</span>
+    <h2>The automated system</h2>
+    <p>Describe what the system decides, about whom, and what the person stands to lose.
+       Or load a profile drawn from the systems the case law and the thesis have already met.</p>
+  </div>
+  <label class="visually-hidden" for="sys-desc">Describe the automated system</label>
+  <textarea id="sys-desc" placeholder="e.g. A state system flags benefit claims as fraudulent and suspends payments on its own, sending notice to a dormant online account..."></textarea>
+  <div class="profiles" role="group" aria-label="Load a system profile">
+    <button class="profile" data-profile="eligibility">Eligibility screening</button>
+    <button class="profile" data-profile="fraud">Fraud adjudication</button>
+    <button class="profile" data-profile="carebudget">Care-hours formula</button>
+    <button class="profile" data-profile="scoring">Public-worker scoring</button>
+    <button class="profile" data-profile="risk">Sentencing risk score</button>
+    <button class="profile" data-profile="booking">Appointment gatekeeping</button>
+  </div>
+  <p class="note" style="margin-top:10px">Profile ratings are study suggestions describing the bare system. Move the sliders and watch the required level shift.</p>
+</section>
+
+<!-- ================= 1.5 · GUIDED ASSESSMENT ================= -->
+<section class="section wrap" id="guided">
+  <div class="section-head reveal">
+    <span class="eyebrow">Step 1.5 &middot; Recommended</span>
+    <h2>Guided assessment</h2>
+    <p>Twelve plain-language questions, one for every control the meter reads. Each answer moves
+       its slider the moment you pick it, and the tag under each question names the control it
+       drives. The link runs both ways, so adjusting a slider or loading a profile updates the
+       matching answer. A question left unanswered leaves its slider exactly where it is.</p>
+  </div>
+  <div class="guide-actions">
+    <button class="btn btn-ghost" id="btn-guide-toggle" aria-expanded="true" aria-controls="guide-body">Fill in manually instead</button>
+    <span class="note" id="guide-note" role="status" hidden>Sliders updated automatically.</span>
+  </div>
+  <div id="guide-body">
+    <div class="guide-grid">
+      <div class="g-q">
+        <label for="gq-f1">1. If the system acts wrongly, what does the person lose?</label>
+        <select id="gq-f1" data-target="f1">
+          <option value="" selected disabled>Choose an answer&hellip;</option>
+          <option value="1">Almost nothing, easily undone &mdash; a rescheduled slot</option>
+          <option value="2">A modest, reversible setback</option>
+          <option value="3">A significant loss, recoverable over time</option>
+          <option value="4">A serious loss, hard to reverse &mdash; wages garnished</option>
+          <option value="5">Subsistence or liberty itself &mdash; the benefit that feeds the person</option>
+        </select>
+        <span class="g-tag">Drives Input 1 &middot; Severity &amp; reversibility of harm</span>
+      </div>
+      <div class="g-q">
+        <label for="gq-vuln">2. Who typically faces this system?</label>
+        <select id="gq-vuln" data-target="vuln">
+          <option value="" selected disabled>Choose an answer&hellip;</option>
+          <option value="1">Well-resourced people with professional support</option>
+          <option value="2">People mostly equipped to understand and respond</option>
+          <option value="3">A mixed population</option>
+          <option value="4">Vulnerable people with limited support</option>
+          <option value="5">Poor and often offline &mdash; a phone but no computer</option>
+        </select>
+        <span class="g-tag">Drives Input 2 &middot; Vulnerability of the affected population</span>
+      </div>
+      <div class="g-q">
+        <label for="gq-f2">3. How likely is the bare system to get it wrong, and would a claimant-side tool cut that risk?</label>
+        <select id="gq-f2" data-target="f2">
+          <option value="" selected disabled>Choose an answer&hellip;</option>
+          <option value="1">Rarely wrong, a tool would add little</option>
+          <option value="2">Occasionally wrong</option>
+          <option value="3">Moderately error-prone</option>
+          <option value="4">Often wrong, safeguards would clearly help</option>
+          <option value="5">Severely error-prone &mdash; bad or unreliable data</option>
+        </select>
+        <span class="g-tag">Drives Input 3 &middot; Risk of error &amp; value of safeguards</span>
+      </div>
+      <div class="g-q">
+        <label for="gq-f3">4. What would stronger safeguards cost the deployer?</label>
+        <select id="gq-f3" data-target="f3">
+          <option value="" selected disabled>Choose an answer&hellip;</option>
+          <option value="1">Almost nothing &mdash; a clearer notice template</option>
+          <option value="2">A light burden</option>
+          <option value="3">A moderate burden</option>
+          <option value="4">A heavy burden &mdash; new review staff, real cost</option>
+          <option value="5">A prohibitive burden</option>
+        </select>
+        <span class="g-tag">Drives Counterweight &middot; The deployer's burden</span>
+      </div>
+      <div class="g-q">
+        <label for="gq-a1">5. Can the person get the actual reasons for the decision?</label>
+        <select id="gq-a1" data-target="a1">
+          <option value="" selected disabled>Choose an answer&hellip;</option>
+          <option value="1">Full, specific reasons are given</option>
+          <option value="2">Mostly explained</option>
+          <option value="3">Partly explained</option>
+          <option value="4">Vague, standardized codes only</option>
+          <option value="5">No reasons at all</option>
+        </select>
+        <span class="g-tag">Drives Opacity &middot; Reasons for the output</span>
+      </div>
+      <div class="g-q">
+        <label for="gq-a2">6. Can the person verify and challenge the specific output?</label>
+        <select id="gq-a2" data-target="a2">
+          <option value="" selected disabled>Choose an answer&hellip;</option>
+          <option value="1">Fully &mdash; it can be verified and disputed</option>
+          <option value="2">Mostly contestable</option>
+          <option value="3">Contestable in a limited way</option>
+          <option value="4">Very hard to challenge</option>
+          <option value="5">Not at all, a black box</option>
+        </select>
+        <span class="g-tag">Drives Contestability &middot; Verifying and challenging the output</span>
+      </div>
+      <div class="g-q">
+        <label for="gq-a3">7. Does a human being meaningfully review the decision?</label>
+        <select id="gq-a3" data-target="a3">
+          <option value="" selected disabled>Choose an answer&hellip;</option>
+          <option value="1">Robust human review of every case</option>
+          <option value="2">Substantial review</option>
+          <option value="3">Some review</option>
+          <option value="4">A rubber-stamp</option>
+          <option value="5">None, the system adjudicates on its own</option>
+        </select>
+        <span class="g-tag">Drives Human recourse &middot; A person in the loop</span>
+      </div>
+      <div class="g-q">
+        <label for="gq-a4">8. Is the decision logic shielded as a trade secret?</label>
+        <select id="gq-a4" data-target="a4">
+          <option value="" selected disabled>Choose an answer&hellip;</option>
+          <option value="1">Fully open logic</option>
+          <option value="2">Mostly open</option>
+          <option value="3">Partly disclosed</option>
+          <option value="4">Proprietary</option>
+          <option value="5">Sealed as a trade secret</option>
+        </select>
+        <span class="g-tag">Drives Proprietary secrecy &middot; Trade-secret shielding</span>
+      </div>
+      <div class="g-q">
+        <label for="gq-a5">9. Was the system validated on this population, with reliable data?</label>
+        <select id="gq-a5" data-target="a5">
+          <option value="" selected disabled>Choose an answer&hellip;</option>
+          <option value="1">Well validated on this population</option>
+          <option value="2">Adequately validated</option>
+          <option value="3">Unclear</option>
+          <option value="4">Poorly validated</option>
+          <option value="5">Not validated, or unreliable data</option>
+        </select>
+        <span class="g-tag">Drives Validation &middot; Tested on the affected population</span>
+      </div>
+      <div class="g-q">
+        <label for="gq-a6">10. Does the output effectively decide the matter by itself?</label>
+        <select id="gq-a6" data-target="a6">
+          <option value="" selected disabled>Choose an answer&hellip;</option>
+          <option value="1">Purely advisory</option>
+          <option value="2">Mostly advisory</option>
+          <option value="3">One influential input among others</option>
+          <option value="4">Near-determinative</option>
+          <option value="5">Determinative, at software speed</option>
+        </select>
+        <span class="g-tag">Drives Decisiveness &middot; Advisory or determinative</span>
+      </div>
+      <div class="g-q">
+        <label for="gq-kdma">11. Does the decision trade one contested value against another, e.g. fraud prevention vs access to benefits?</label>
+        <select id="gq-kdma" data-target="kdma">
+          <option value="" selected disabled>Choose an answer&hellip;</option>
+          <option value="0">No, largely ministerial rules</option>
+          <option value="1">Partly, contested at the margins</option>
+          <option value="2">Yes, a core value trade-off</option>
+        </select>
+        <span class="g-tag">Drives Step 4 &middot; The KDMA input</span>
+      </div>
+      <div class="g-q">
+        <label for="gq-tension">12. If values are in tension, name them</label>
+        <input type="text" id="gq-tension" placeholder="e.g. fraud prevention vs access to benefits" autocomplete="off">
+        <span class="g-tag">Drives Step 4 &middot; Values in tension</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 2 · CLASSIFY THE STAKES ================= -->
+<section class="section wrap" id="classify">
+  <div class="section-head reveal">
+    <span class="eyebrow">Step 2</span>
+    <h2>Classify the stakes</h2>
+    <p>The framework's classification inputs and the Mathews factors ask the same question in
+       two registers. Severity and vulnerability read the private interest, error risk reads
+       what a claimant-side counterpart would add, and the agency burden is the counterweight.</p>
+  </div>
+  <div id="mathews-factors"><!-- rendered by JS --></div>
+</section>
+
+<!-- ================= 3 · THE ASYMMETRY PROFILE ================= -->
+<section class="section wrap" id="characteristics">
+  <div class="section-head reveal">
+    <span class="eyebrow">Step 3</span>
+    <h2>The asymmetry profile</h2>
+    <p>A system that decides faster, sees more and explains less widens the gap on every axis.
+       Rate the bare system, before any countervailing safeguards, the result tells you what
+       those safeguards must add.</p>
+  </div>
+  <div class="factor-grid" id="auto-factors"><!-- rendered by JS --></div>
+</section>
+
+<!-- ================= 4 · KDMA ================= -->
+<section class="section wrap" id="kdma-step">
+  <div class="section-head reveal">
+    <span class="eyebrow">Step 4</span>
+    <h2>Contested value judgments, the KDMA input</h2>
+    <p>KDMAs, key decision-making attributes, are the value-laden traits that steer a decision
+       where no single right answer exists. When the system's KDMAs trade one value against
+       another, for example fraud prevention against access to benefits, the duty rises and
+       four safeguards become mandatory in the package.</p>
+  </div>
+  <div class="factor">
+    <div class="kdma-row">
+      <div class="kdma-field">
+        <label for="kdma-level">Does the system rely on contested KDMAs?</label>
+        <select id="kdma-level">
+          <option value="0" selected>No, largely ministerial rules</option>
+          <option value="1">Partly, contested at the margins</option>
+          <option value="2">Yes, a core value trade-off</option>
+        </select>
+      </div>
+      <div class="kdma-field">
+        <label for="kdma-text">Name the values in tension</label>
+        <input type="text" id="kdma-text" placeholder="e.g. fraud prevention vs access to benefits" autocomplete="off">
+      </div>
+    </div>
+    <p class="anchor" style="margin-top:12px">Manual framework input, and this calibrator's one extension beyond the dissertation's chapters. When contested KDMAs are present, the package must carry individualized explanations, a route to submit additional evidence, mandatory human review, and an appeal process, each independently anchored in the sources appendix.</p>
+  </div>
+  <details class="how">
+    <summary>How the heuristic works</summary>
+    <p>The duty intensity starts from the average of severity, vulnerability and error risk,
+       is reduced as the agency burden grows, rises with the asymmetry profile, and rises again
+       when contested KDMAs are present. The intensity then maps onto the framework's required
+       co-deployment level, 0 to 3, with the maximal band reserved for opaque automation,
+       immediate severe harm, a vulnerable and often offline population, and no human point of
+       recourse. Directions come from the framework and the case law. The exact weights are
+       study choices with no legal authority, which is why the meter always ships the written
+       analysis alongside the number.</p>
+  </details>
+  <div class="calibrate-row">
+    <button class="btn btn-blue" id="btn-calibrate">Calibrate the duty</button>
+    <span id="stale" hidden>Inputs changed, calibrate again</span>
+  </div>
+</section>
+
+<!-- ================= 5 · RESULTS ================= -->
+<section class="section wrap" id="results" hidden aria-live="polite">
+  <div class="section-head">
+    <span class="eyebrow">Result</span>
+    <h2>The required co-deployment level</h2>
+  </div>
+
+  <div class="gauge">
+    <div class="beam" aria-hidden="true">
+      <span class="zone-tick" style="left:32.5%"></span>
+      <span class="zone-tick" style="left:60%"></span>
+      <span class="zone-tick" style="left:82.5%"></span>
+      <span class="needle" id="needle" style="left:50%"></span>
+    </div>
+    <div class="zone-labels" aria-hidden="true">
+      <span>L0&ndash;1 minimal</span><span>L2 moderate</span><span>L3 high</span><span>L3+ maximal</span>
+    </div>
+    <div class="readout">
+      <p class="verdict" id="verdict"></p>
+      <span class="score" id="score-line"></span>
+    </div>
+    <div class="honesty">
+      <p>This sizes the state's duty and the counterpart it owes, for the system as you rated
+         it, on the study scale. Levels are earned by realized capacity, not declared, a portal
+         that exists but is unusable does not qualify.</p>
+    </div>
+  </div>
+
+  <div class="result-card">
+    <h3>Written analysis</h3>
+    <div id="analysis"></div>
+  </div>
+
+  <div class="result-card">
+    <h3>The countervailing package</h3>
+    <ul class="safeguards" id="safeguards"></ul>
+  </div>
+
+  <div class="result-card">
+    <h3>When you build it, judge it on five axes</h3>
+    <ul class="dims" id="dims"></ul>
+  </div>
+
+  <div class="calibrate-row">
+    <button class="btn btn-blue" id="btn-word">Download the Word report</button>
+    <button class="btn btn-ghost" id="btn-save">Save this analysis</button>
+    <span class="note" id="word-note" hidden></span>
+    <span class="note" id="save-note" hidden>Saving is unavailable in this viewer.</span>
+  </div>
+</section>
+
+<!-- ================= 6 · SAVED ================= -->
+<section class="section wrap" id="saved">
+  <div class="section-head reveal">
+    <span class="eyebrow">On this device</span>
+    <h2>Saved analyses</h2>
+  </div>
+  <p id="saved-empty">Nothing saved yet. Calibrate a system and save it to compare profiles later.</p>
+  <ul class="saved-list" id="saved-list"></ul>
+  <div class="calibrate-row">
+    <button class="btn btn-red" id="btn-clear-saved">Clear all saved</button>
+  </div>
+</section>
+
+<!-- ================= MANUAL / HELP ================= -->
+<section class="section wrap" id="manual">
+  <div class="section-head reveal">
+    <span class="eyebrow">Manual</span>
+    <h2>How to use the calibrator</h2>
+    <p>A complete guide, what the meter is for, how to run it step by step, how to read the
+       result, a worked example, and the sources behind every factor.</p>
+  </div>
+
+  <div class="manual">
+
+    <h3 id="m-what">1. What this tool is, and is not</h3>
+    <p>The calibrator is the due process meter of the Countervailing Co-Deployment framework.
+       You feed it one government-run automated system, described bare, before any safeguards,
+       and it returns two things, the intensity of the due-process duty the state owes the
+       affected person, and the co-deployment level, 0 to 3, that the claimant-side
+       countervailing tool must reach to meet that duty.</p>
+    <div class="callout" role="note">
+      <p><strong>It is not a court, and not a predictor.</strong> The meter does not estimate
+         whether a lawsuit would win or lose. It sizes an obligation and the counterpart that
+         obligation requires. The number is a study heuristic whose weights carry no legal
+         authority, which is why it always travels with the written analysis.</p>
+    </div>
+    <p>The engine runs two aligned registers at once. One is the framework's classification
+       step, the magnitude of the asymmetry the system creates, the severity and reversibility
+       of the harm, and the vulnerability of the affected population. The other is the
+       three-factor balance of <em>Mathews v. Eldridge</em>. As the thesis puts it, a reader who
+       wants to know how much co-deployment is owed can run the Mathews balance and the
+       proportionality profile together, because they ask the same question in two registers.</p>
+    <p>Of the five-step procedure in chapter 6, the calibrator runs steps 1 and 2, classify the
+       system and set the required co-deployment level, and then drafts the countervailing
+       package that level demands. Steps 3 and 4, scoring an already deployed counterpart on the
+       five dimensions and applying their floors as the binding constraint, are the job of
+       Module B, the Claimant-Side Tool Evaluator, a companion single file built on the same
+       framework, and the five-axes card at the end of the results here is the hand reference
+       for the same exercise.</p>
+
+    <h3 id="m-open">2. Opening and saving</h3>
+    <ul>
+      <li><strong>Open.</strong> The tool is a single offline file. Save it and double click, or
+          drag it into a browser tab. No internet, no install, nothing to configure.</li>
+      <li><strong>Saving your work.</strong> The Save button stores an analysis in this browser
+          on this device, through localStorage. It never leaves the machine. Load reopens a saved
+          analysis and recalibrates it, Delete removes one, and Clear all empties the list.</li>
+      <li><strong>The Word report.</strong> After calibrating, Download the Word report writes a
+          .docx of the whole case, the system description, every input value, the written
+          analysis, the countervailing package, and the five-axes checklist. The file is
+          assembled entirely inside the browser, offline, nothing is sent anywhere.</li>
+      <li><strong>A note on viewers.</strong> If you open the file inside a viewer that blocks
+          storage, the tool still runs, it simply tells you that saving is unavailable.</li>
+      <li><strong>Links from companion tools.</strong> A sibling file, like SNAP Navigator, can
+          open this calibrator with the inputs pre-filled through the link itself. The data
+          travels inside the link on your device, nothing is fetched and nothing is sent, and a
+          malformed link simply loads the page normally.</li>
+    </ul>
+
+    <h3 id="m-quick">3. Quick start in six moves</h3>
+    <ol>
+      <li><strong>Load or describe a system.</strong> Tap a profile chip for a worked starting
+          point, or type your own system into the box in Step 1.</li>
+      <li><strong>Answer the guided questions.</strong> Step 1.5 walks all twelve inputs in plain
+          language, and every answer moves its slider in real time. Skip it with Fill in
+          manually if you prefer to work the sliders directly.</li>
+      <li><strong>Classify the stakes.</strong> In Step 2, set severity and reversibility of harm,
+          vulnerability of the population, and risk of error. Set the deployer's burden, which
+          pushes the other way.</li>
+      <li><strong>Rate the asymmetry.</strong> In Step 3, rate the six characteristics of the bare
+          system, opacity, contestability, human recourse, proprietary secrecy, validation, and
+          decisiveness.</li>
+      <li><strong>Flag contested value judgments.</strong> In Step 4, set the KDMA input and name
+          the values in tension, if any.</li>
+      <li><strong>Calibrate and read.</strong> Press Calibrate the duty. The meter shows the
+          required level, the written analysis, the countervailing package, and the five axes on
+          which to judge the package once you build it, and Download the Word report exports it
+          all as a .docx.</li>
+    </ol>
+
+    <h3 id="m-controls">4. The controls, one by one</h3>
+
+    <h4>Step 1, the system</h4>
+    <p>Describe what the system decides, about whom, and what the person stands to lose. The six
+       profile chips load bare-system study suggestions drawn from the kinds of systems the case
+       law and the thesis have met, benefit eligibility screening, fraud adjudication, a Medicaid
+       care-hours formula, public-worker scoring, a sentencing risk score, and appointment
+       gatekeeping. A profile fills the description, the sliders, and the KDMA input, so you can
+       calibrate at once or adjust first.</p>
+
+    <h4>Step 1.5, the guided assessment</h4>
+    <p>Twelve objective questions, one for each control the meter reads, eleven selectors and a
+       text field for the values in tension. Every answer moves its slider the moment you pick
+       it, and the tag under each question names the control it drives. The link runs both ways,
+       moving a slider, loading a profile, or reopening a saved analysis updates the matching
+       answers, so the two views never disagree. A question left unanswered leaves its slider
+       exactly where it is, the meter never fills gaps for you. Fill in manually collapses the
+       questions if you prefer the sliders directly.</p>
+
+    <h4>Step 2, classify the stakes</h4>
+    <p>Four sliders, each from 1 to 5. Three raise the duty, one lowers it.</p>
+    <div class="step-card">Severity and reversibility of harm. What the person loses, and whether
+      it can be undone. This is the private interest in the Mathews register.
+      <span class="cite">Goldberg v. Kelly, 397 U.S. 254 (1970); Mathews v. Eldridge, 424 U.S. 319 (1976)</span></div>
+    <div class="step-card">Vulnerability of the affected population. How equipped the people on the
+      receiving end are to understand and respond.
+      <span class="cite">CC Deployment thesis, classification input</span></div>
+    <div class="step-card">Risk of error and value of safeguards. How likely the bare system is to
+      get it wrong, and how much a counterpart would help. The second Mathews factor.
+      <span class="cite">K.W. v. Armstrong (D. Idaho 2016)</span></div>
+    <div class="step-card">The deployer's burden. The cost stronger safeguards would impose on the
+      deploying party. This is the counterweight, the third Mathews factor, shown in red because a
+      heavy burden pulls the duty down.
+      <span class="cite">Mathews v. Eldridge, 424 U.S. 319 (1976)</span></div>
+
+    <h4>Step 3, the asymmetry profile</h4>
+    <p>Six sliders describing the bare system, each from 1 to 5, where 5 is the most concerning.
+       Rate the system as it runs before any countervailing tool, because the result tells you
+       what that tool must add. The six are opacity, whether the person can get the actual
+       reasons, contestability, whether the specific output can be verified and challenged, human
+       recourse, whether a person sits in the loop, proprietary secrecy, whether the logic is
+       shielded as a trade secret, validation, whether the system was tested on this population
+       with reliable data, and decisiveness, whether the output effectively decides by itself.</p>
+
+    <h4>Step 4, the KDMA input</h4>
+    <p>KDMA stands for key decision-making attributes, the value-laden traits that steer a
+       decision where no single right answer exists. The term comes from the DARPA In the Moment
+       line of research on decisions of exactly that kind, and it is an extension this calibrator
+       adds beyond the dissertation, whose chapters do not use the term. The selector has three settings, no
+       contested KDMAs, contested at the margins, and a core value trade-off. The text field lets
+       you name the values in tension, for example fraud prevention against access to benefits.</p>
+    <div class="callout" role="note">
+      <p><strong>Why the KDMA input matters.</strong> When the system trades one contested value
+         against another, the framework treats the decision as one where reasonable people
+         disagree, so four safeguards become mandatory in the package, individualized
+         explanations, a route to submit additional evidence, mandatory human review, and an
+         appeal process.</p>
+    </div>
+
+    <h3 id="m-read">5. Reading the result</h3>
+    <p>Calibrate produces four blocks. The gauge places the system on a spectrum of duty
+       intensity and names the required co-deployment level. The written analysis walks each
+       input in turn, in plain language, and cites the case or framework chapter behind it. The
+       countervailing package is the list of safeguards the tool must deliver, each traced to a
+       source. The five-axes card is the checklist for judging that package once it exists. Below
+       them, Download the Word report exports the whole result, inputs, analysis, package, and
+       checklist, as a .docx assembled offline in the browser.</p>
+    <p>If you change any input after a result, the meter raises the flag <em>Inputs changed,
+       calibrate again</em> until you recalibrate. Everything on screen, and the Word report,
+       keeps following the last calibrated result, never the moved sliders, so a report can
+       never mix two states of the inputs.</p>
+    <p>The four levels map duty intensity onto what the framework requires.</p>
+    <table>
+      <thead><tr><th>Level</th><th>When it triggers</th><th>What the counterpart must deliver</th></tr></thead>
+      <tbody>
+        <tr><td>Level 0 to 1, minimal</td><td>Small asymmetry, low and reversible stakes, a population that can fend for itself.</td><td>Static information and reasoned notice.</td></tr>
+        <tr><td>Level 2, moderate</td><td>Real asymmetry and moderate harm, decisions that shape access but rarely subsistence.</td><td>An interactive counterpart that helps the person understand eligibility, map evidence, and detect mismatch before rejection.</td></tr>
+        <tr><td>Level 3, high</td><td>Large asymmetry, severe or hard-to-reverse harm, a vulnerable population, decisions that touch subsistence or liberty.</td><td>A corrective counterpart connected to usable routes for appeal, human review, evidence supplementation, and rule revision.</td></tr>
+        <tr><td>Level 3+, maximal</td><td>Opaque automation, immediate severe harm, a poor and often offline population, and no human point of recourse.</td><td>The level 3 counterpart, plus enforced maintenance and independent monitoring, it co-evolves with the system and an independent body answers for it.</td></tr>
+      </tbody>
+    </table>
+    <p>Levels are earned by realized capacity, not declared. As the thesis insists, a portal that
+       exists but is unusable does not qualify as level 2 or 3, and an information leaflet no
+       claimant can translate into action does not satisfy the principle.</p>
+    <details>
+      <summary>How the number is built</summary>
+      <p>The duty intensity starts from the average of severity, vulnerability, and error risk. It
+         is reduced as the deployer's burden grows, raised as the asymmetry profile grows, and
+         raised again when contested KDMAs are present. The result is clamped to the 1 to 5 scale
+         and mapped onto the four levels, with the maximal band gated behind the framework's own
+         trigger profile, so a system reaches it only with high intensity together with severe
+         and hard-to-reverse harm, no human recourse, a vulnerable population, and opacity or
+         proprietary secrecy. Band cutoffs are applied to the score as displayed, rounded to one
+         decimal, so a raw value from 4.25 upward reads 4.3 and sits at the maximal cutoff. The weights are
+         study choices with no legal authority. They order and structure the reasoning, they do
+         not measure a legal quantity, which is why the analysis ships beside the number.</p>
+    </details>
+
+    <h3 id="m-walk">6. A worked example, step by step</h3>
+    <p>Take the automated fraud system the thesis studies, the one whose facts echo the Michigan
+       MiDAS episode. Follow the meter through it.</p>
+    <div class="walk">
+      <span class="badge">Step 1 &middot; Load the system</span>
+      <p>Tap the <strong>Fraud adjudication</strong> chip. The box fills with a state system that
+         flags claims as fraudulent and imposes penalties on its own, seizing refunds and
+         garnishing wages, sending notice to a dormant online account. The guided answers of
+         Step 1.5 fill themselves too, a profile keeps the questions and the sliders in sync.</p>
+    </div>
+    <div class="walk">
+      <span class="badge">Step 2 &middot; Classify the stakes</span>
+      <p>The profile sets the harm high and hard to reverse, seized wages and lost subsistence,
+         the population vulnerable, poor and often offline, and the error risk severe, this is the
+         system a state audit later found wrong in the vast majority of reviewed cases. The
+         deployer's burden is left low, since a notice that actually explains costs little.</p>
+    </div>
+    <div class="walk">
+      <span class="badge">Step 3 &middot; Rate the asymmetry</span>
+      <p>Opacity and contestability sit near the top, the person cannot get real reasons or
+         challenge the finding. Human recourse is at the maximum concern, the system
+         auto-adjudicates. Validation is poor and decisiveness is near total.</p>
+    </div>
+    <div class="walk">
+      <span class="badge">Step 4 &middot; KDMA</span>
+      <p>The profile marks a core value trade-off and names it, fraud prevention against access to
+         benefits. This is the contested value judgment that makes the four safeguards mandatory.</p>
+    </div>
+    <div class="walk">
+      <span class="badge">Step 5 &middot; Calibrate and read</span>
+      <p>The meter returns <strong>Level 3+, maximal duty</strong>. The analysis explains why, high
+         and irreversible stakes on a vulnerable population, an opaque system that decides by
+         itself with no human recourse, and a contested KDMA. The package then requires the full
+         set, individualized notice, an evidence route, mandatory human review, an appeal, plus
+         enforced maintenance and independent monitoring, because a body independent of the
+         deployer must answer for the counterpart. Read the five-axes card last, it is how you
+         will later check whether the counterpart you build actually clears each floor.</p>
+    </div>
+    <p>Now change one input and watch the duty move. Drop human recourse to robust review and the
+       system leaves the maximal band, because a human point of recourse is one of its triggers.
+       Drop the harm to Significant and it leaves the band too, immediate and severe harm is part
+       of the same trigger profile. Turn the KDMA setting to none and the four value-judgment
+       safeguards recede. That sensitivity is the point, the meter shows how each design choice
+       changes what the state owes.</p>
+
+    <h3 id="m-sources">7. Sources behind the factors</h3>
+    <p>Every factor and safeguard traces to one of two places, the framework of the CC Deployment
+       thesis, or a verified court decision. The cases below were checked against court opinions,
+       official reporters, and legal summaries. Two provenances should be kept distinct. Goldberg,
+       Mathews, and K.W. v. Armstrong are cited in the dissertation itself. Perdue, Houston
+       Federation of Teachers, Bauserman, and Loomis were verified for this tool and extend the
+       dissertation's citation record, which reaches the Michigan and Idaho episodes without
+       naming these decisions.</p>
+
+    <h4>Legal anchors</h4>
+    <ul class="src">
+      <li>Goldberg v. Kelly, 397 U.S. 254 (1970). Notice and a prior hearing before benefits are cut.</li>
+      <li>Mathews v. Eldridge, 424 U.S. 319 (1976). The three-factor balance the meter runs.</li>
+      <li>Perdue v. Gargano, 964 N.E.2d 825 (Ind. 2012). Vague automated denial notices violate due process.</li>
+      <li>K.W. v. Armstrong (9th Cir. 2015; D. Idaho 2016). A secret Medicaid formula disclosed, then struck as arbitrary on unreliable data.</li>
+      <li>Houston Federation of Teachers v. HISD, 251 F. Supp. 3d 1168 (S.D. Tex. 2017). Black-box scores the person cannot verify or challenge.</li>
+      <li>Bauserman v. Unemployment Ins. Agency, 983 N.W.2d 855 (Mich. 2022). Auto-adjudicated fraud and the harm of no human recourse.</li>
+      <li>State v. Loomis, 881 N.W.2d 749 (Wis. 2016), cert. denied, 137 S. Ct. 2290 (2017). A proprietary score may inform, but not determine, the outcome.</li>
+    </ul>
+
+    <h4>Framework anchors, CC Deployment thesis</h4>
+    <ul class="src">
+      <li>Chapter 4. The five claimant functions, translate, explain eligibility, map evidence, detect mismatch, route contestation.</li>
+      <li>Chapter 5. Why the duty is owed, and the mapping of the Mathews factors onto the framework's inputs.</li>
+      <li>Chapter 6. The classification step, the four duty-intensity bands, and the five proportionality dimensions with their floors.</li>
+      <li>Chapters 6 and 7. The maintenance obligation and independent monitoring the maximal band enforces.</li>
+      <li>Chapter 9. The four design conditions, capacity-building, contestability to the user, claimant data sovereignty, and resistance to category mimicry.</li>
+      <li>Chapter 10. Levels measured by realized capacity, not nominal provision.</li>
+    </ul>
+
+    <h4>The KDMA input</h4>
+    <ul class="src">
+      <li>Key decision-making attributes, from the DARPA In the Moment line of research on decisions where no single right answer exists. Used here as a manual framework input, not a claim about how any specific system computes its result. The concept does not appear in the dissertation's chapters, it is an extension adopted for this tool, and the four safeguards it makes mandatory are each independently anchored in the case law and framework chapters above.</li>
+    </ul>
+
+    <div class="callout" role="note">
+      <p><strong>One standing caveat.</strong> The calibrator organizes reasoning under a
+         framework. It does not deliver legal advice, and its numeric weights carry no legal
+         authority. Treat the level as a structured argument about what the state owes, always
+         read with the written analysis beside it.</p>
+    </div>
+
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <p><strong>Due Process Calibrator</strong> &middot; the due process meter of the Countervailing Co-Deployment framework.</p>
+    <p>MIT licensed. Case anchors verified against court opinions and legal summaries as of July 2026. Sizes the state's obligation and the required counterpart, not litigation odds. Not legal advice.</p>
+  </div>
+</footer>
+
+<script>
+/* ============================================================
+   DATA
+   ------------------------------------------------------------
+   Doctrinal anchors verified against court opinions, official
+   reporters and legal summaries (same record as the companion
+   US Law & Technology Explorer). Framework anchors come from
+   the CC Deployment thesis, classification inputs and levels
+   (chs. 6 and 10), claimant functions (ch. 4), design
+   conditions (ch. 9), five dimensions and floors (ch. 6).
+   The KDMA input is a manual framework input, key
+   decision-making attributes, the value-laden traits that
+   steer decisions where no single right answer exists.
+   Numeric weights are study choices with no legal authority.
+   ============================================================ */
+const DATA = {
+
+  levels: [
+    { max: 2.3, name: "Level 0 to 1 · Minimal duty",
+      text: "Small asymmetry, low and reversible stakes, a population that can fend for itself. The framework asks little here, static information and reasoned notice can carry the duty." },
+    { max: 3.4, name: "Level 2 · Moderate duty",
+      text: "Real asymmetry and moderate harm, decisions that shape access but rarely subsistence. The framework requires an interactive claimant-side counterpart, a tool that helps the person understand eligibility, identify relevant evidence and detect mismatch before rejection." },
+    { max: 99, name: "Level 3 · High duty",
+      text: "Large asymmetry, severe or hard-to-reverse harm, a vulnerable population, decisions that touch subsistence or liberty. The framework requires a corrective counterpart, connected to actual, usable routes for appeal, human review, evidence supplementation and rule revision." },
+    { max: 100, name: "Level 3+ · Maximal duty",
+      text: "Opaque automation, immediate and severe harm, a poor and often offline population, and no human point of recourse. The framework requires the corrective counterpart of level 3, with the maintenance obligation and independent monitoring enforced, the counterpart co-evolves with the system and a body independent of the deployer answers for it. In the dissertation's own terms this is not a fourth level but Level 3 with maintenance and independent monitoring enforced, the label 3+ is this tool's shorthand for that formulation." }
+  ],
+
+  mathews: [
+    {
+      id: "f1", num: "Input 1 · Mathews factor 1", title: "Severity & reversibility of harm",
+      desc: "What the affected person stands to lose when the system acts, and whether the loss can be undone.",
+      anchor: "Framework classification input. In the Mathews register, the private interest. Goldberg v. Kelly, 397 U.S. 254 (1970) treated welfare, the means of subsistence, as weighty; Mathews v. Eldridge, 424 U.S. 319 (1976) saw disability benefits as less immediately tied to subsistence.",
+      left: "Low, reversible stakes", right: "Subsistence, liberty, hard to reverse",
+      words: ["Trivial", "Modest", "Significant", "Serious", "Subsistence-level"],
+      counter: false
+    },
+    {
+      id: "vuln", num: "Input 2", title: "Vulnerability of the affected population",
+      desc: "Who is on the receiving end, and how equipped they are to understand and respond.",
+      anchor: "Framework classification input, read with the private interest in the Mathews register. In the thesis's field-study population, owning a phone but no computer was the typical case, and the typical case was designed out of the process.",
+      left: "Well-resourced, equipped", right: "Poor and often offline",
+      words: ["Well-resourced", "Mostly equipped", "Mixed", "Vulnerable", "Poor, often offline"],
+      counter: false
+    },
+    {
+      id: "f2", num: "Input 3 · Mathews factor 2", title: "Risk of error & value of safeguards",
+      desc: "How likely the bare system is to get it wrong, and how much a claimant-side counterpart would cut that risk.",
+      anchor: "In the Mathews register, the second factor, what the counterpart adds. Automated systems with bad data mark the high end, K.W. v. Armstrong (D. Idaho 2016) struck a formula built on limited and unreliable data.",
+      left: "Reliable system", right: "Error-prone, safeguards would help",
+      words: ["Minimal risk", "Low risk", "Moderate risk", "High risk", "Severe risk"],
+      counter: false
+    },
+    {
+      id: "f3", num: "Counterweight · Mathews factor 3", title: "The deployer's burden",
+      desc: "The fiscal and administrative cost that stronger safeguards would impose on the party that deploys. This factor pushes the other way.",
+      anchor: "In the Mathews register, the government interest, the counterweight that let the Court accept paper review before terminating disability benefits.",
+      left: "Extra safeguards cost little", right: "Extra safeguards cost a lot",
+      words: ["Trivial burden", "Light burden", "Moderate burden", "Heavy burden", "Prohibitive burden"],
+      counter: true
+    }
+  ],
+
+  auto: [
+    {
+      id: "a1", num: "Opacity", title: "Reasons for the output",
+      desc: "Can the person get the actual reasons for the system's decision.",
+      anchor: "Perdue v. Gargano, 964 N.E.2d 825 (Ind. 2012), vague 'failure to cooperate' notices violated due process. Notice of reasons is the first ingredient Goldberg demands.",
+      left: "Full reasons given", right: "No reasons at all",
+      words: ["Full reasons given", "Mostly explained", "Partly explained", "Vague notices", "No reasons at all"]
+    },
+    {
+      id: "a2", num: "Contestability", title: "Verifying and challenging the output",
+      desc: "Can the person check the specific output and fight it.",
+      anchor: "Houston Fed'n of Teachers v. HISD, 251 F. Supp. 3d 1168 (S.D. Tex. 2017), 'black box' scores teachers could not verify or challenge created a due-process problem.",
+      left: "Fully contestable", right: "Black box",
+      words: ["Fully contestable", "Mostly contestable", "Limited", "Hard to challenge", "Black box"]
+    },
+    {
+      id: "a3", num: "Human recourse", title: "A person in the loop",
+      desc: "Does meaningful human review sit between the system and the person, or does the system adjudicate on its own.",
+      anchor: "Bauserman v. Unemployment Ins. Agency, 983 N.W.2d 855 (Mich. 2022), MiDAS auto-adjudicated fraud and produced tens of thousands of false findings.",
+      left: "Robust human review", right: "No human point of recourse",
+      words: ["Robust human review", "Substantial review", "Some review", "Rubber-stamp", "Auto-adjudicated"]
+    },
+    {
+      id: "a4", num: "Proprietary secrecy", title: "Trade-secret shielding",
+      desc: "Is the decision logic hidden behind proprietary claims.",
+      anchor: "K.W. v. Armstrong (9th Cir. 2015), Idaho could not hide its formula as a trade secret. State v. Loomis, 881 N.W.2d 749 (Wis. 2016), written cautions required for a secret methodology.",
+      left: "Open logic", right: "Sealed trade secret",
+      words: ["Fully open logic", "Mostly open", "Partly disclosed", "Proprietary", "Sealed trade secret"]
+    },
+    {
+      id: "a5", num: "Validation", title: "Tested on the affected population",
+      desc: "Has the system been validated on this population, with reliable data.",
+      anchor: "Loomis noted no Wisconsin validation study at the time; K.W. v. Armstrong struck a formula that relied on limited and unreliable data.",
+      left: "Well validated", right: "Unvalidated, unreliable data",
+      words: ["Well validated", "Adequately validated", "Uncertain", "Poorly validated", "Unvalidated"]
+    },
+    {
+      id: "a6", num: "Decisiveness", title: "Advisory or determinative",
+      desc: "Does the system's output effectively decide the matter by itself, at software speed.",
+      anchor: "State v. Loomis, the COMPAS score may inform a sentence but cannot be determinative of it.",
+      left: "Purely advisory", right: "Determinative",
+      words: ["Purely advisory", "Mostly advisory", "Influential", "Near-determinative", "Determinative"]
+    }
+  ],
+
+  analysis: {
+    f1: {
+      high: "You placed the harm near the top of the scale, severe and hard to reverse. Where the system's action cuts close to subsistence or liberty, <em>Goldberg v. Kelly</em> treated the interest as weighty enough to demand a hearing before the deprivation, and the framework reads it as a driver of high duty intensity.",
+      mid:  "You rated the harm as significant but not at the level of immediate subsistence, closer to how <em>Mathews v. Eldridge</em> saw disability benefits.",
+      low:  "You rated the harm as modest and reversible. Under <em>Mathews</em> and the framework alike, lighter stakes support a leaner counterpart."
+    },
+    vuln: {
+      high: "The affected population is vulnerable, in the thesis's terms poor and often offline, which raises the duty, because the gap between the system's speed and the person's capacity to respond is widest exactly here.",
+      mid:  "The affected population is mixed, some can fend for themselves and some cannot, which keeps the vulnerability input at a moderate weight.",
+      low:  "The affected population is comparatively well-resourced, a tool used among near-equals, which lowers the duty intensity."
+    },
+    f2: {
+      high: "You see a high risk of erroneous deprivation from the bare system and real value in a claimant-side counterpart, so the second <em>Mathews</em> factor raises what the deployer owes.",
+      mid:  "You see a moderate error risk, so the second factor adds some, though not decisive, weight to the obligation.",
+      low:  "You see the bare system as reliable, which leaves the second factor with little pull."
+    },
+    f3: {
+      high: "You indicated that stronger safeguards would impose a heavy fiscal and administrative burden on the deployer, and under the third <em>Mathews</em> factor that burden pushes back hard against a bigger package.",
+      mid:  "You rated the deployer's burden as moderate, a real but not decisive counterweight.",
+      low:  "You rated the burden of stronger safeguards as light, so the deployer's interest does little to offset the duty."
+    },
+    autoIntro: "The asymmetry profile then widens or narrows the gap, a system that decides faster, sees more and explains less raises the duty on every axis it darkens.",
+    autoHigh: {
+      a1: "The person cannot get the actual reasons for the output. Vague, standardized notices were exactly what failed in <em>Perdue v. Gargano</em>, and notice of reasons is the first ingredient <em>Goldberg</em> demands, so the counterpart must supply the reasons the system does not.",
+      a2: "There is no meaningful way to verify or challenge the specific output, the black-box problem the court flagged in <em>Houston Federation of Teachers</em>, so the counterpart must open a real channel of contest.",
+      a3: "The system adjudicates on its own with no human point of recourse, the pattern behind the mass false fraud findings in <em>Bauserman</em>, and one of the triggers of the framework's maximal band.",
+      a4: "The decision logic is shielded as proprietary. In <em>K.W. v. Armstrong</em> the state could not hide its formula behind a trade-secret claim, and <em>Loomis</em> required written cautions about a secret methodology, so the counterpart must carry disclosure or cautions.",
+      a5: "The system has not been validated on the affected population or rests on unreliable data, the defect that sank Idaho's formula in <em>K.W. v. Armstrong</em> and drew cautions in <em>Loomis</em>, so validation and data audits belong in the package.",
+      a6: "The output effectively decides the matter by itself, at software speed. <em>Loomis</em> held a proprietary score may inform, but cannot be determinative of, the outcome, so the counterpart must keep the output advisory."
+    },
+    autoCalm: "On the remaining axes you reported few concerns, which narrows the asymmetry the counterpart has to answer.",
+    kdma: {
+      present: "You flagged that the system relies on contested KDMAs{TENSION}. When the key decision-making attributes trade one value against another, the framework treats the decision as one where reasonable people disagree, and the package must therefore carry the four mandatory safeguards, individualized explanations, a route to submit additional evidence, mandatory human review, and an appeal process.",
+      core: " as a core trade-off",
+      partial: " at the margins"
+    }
+  },
+
+  safeguards: [
+    { when: function(v, lvl){ return lvl >= 2; },
+      text: "Cover the five claimant functions, translate the system's categories, explain eligibility, map the claimant's own evidence, detect mismatch before rejection, and route contestation to the right door.",
+      cite: "CC Deployment thesis, ch. 4" },
+    { when: function(v, lvl){ return lvl >= 2; },
+      text: "Respect the four design conditions, build the claimant's own capacity, stay contestable to its user, keep claimant data under the claimant's control, and flag what the state's categories miss.",
+      cite: "CC Deployment thesis, ch. 9" },
+    { when: function(v){ return v.a1 >= 3 || v.kdma >= 1; },
+      text: "Advance notice stating the specific, individualized reasons for each adverse output, not standardized codes.",
+      cite: "Goldberg v. Kelly; Perdue v. Gargano" },
+    { when: function(v){ return v.f1 >= 4 || v.f2 >= 4; },
+      text: "An opportunity to be heard and to present evidence before the system's decision takes effect.",
+      cite: "Goldberg v. Kelly" },
+    { when: function(v){ return v.kdma >= 1 || v.f2 >= 4; },
+      text: "A route to submit additional evidence, so the claimant's own record can correct the system's picture.",
+      cite: "Goldberg v. Kelly; CC Deployment framework, KDMA input" },
+    { when: function(v){ return v.a3 >= 3 || v.kdma >= 1; },
+      text: "Mandatory, meaningful human review before adverse action, never auto-adjudication.",
+      cite: "Bauserman v. Unemployment Ins. Agency" },
+    { when: function(v, lvl){ return v.kdma >= 1 || lvl >= 3; },
+      text: "An appeal process, a usable route to challenge the output after it issues.",
+      cite: "Mathews v. Eldridge; CC Deployment framework, KDMA input" },
+    { when: function(v){ return v.a2 >= 3 || v.a4 >= 4; },
+      text: "Disclosure or explanation of the basis of the output, including the system's logic, so the result can be verified and challenged.",
+      cite: "Houston Fed'n of Teachers; K.W. v. Armstrong; State v. Loomis" },
+    { when: function(v){ return v.a6 >= 3; },
+      text: "Keep the system's output advisory, with written cautions, never determinative of the outcome.",
+      cite: "State v. Loomis" },
+    { when: function(v){ return v.a5 >= 3; },
+      text: "Validate the system on the affected population and audit the reliability of its data before relying on it.",
+      cite: "K.W. v. Armstrong; State v. Loomis" },
+    { when: function(v, lvl){ return lvl >= 4; },
+      text: "Enforced maintenance and independent monitoring, the counterpart co-evolves with the system, the deployer discloses changes in advance, and a body independent of the deployer answers for whether it works.",
+      cite: "CC Deployment thesis, chs. 6 and 7" },
+    { when: function(v){ return v.f3 >= 4 || v.f1 <= 2; },
+      text: "Consider whether written, documentary review suffices without a full oral hearing.",
+      cite: "Mathews v. Eldridge" }
+  ],
+  safeguardFallback: { text: "For this profile, static information and reasoned notice may carry the duty.", cite: "Mathews v. Eldridge; CC Deployment thesis, ch. 10" },
+
+  dims: [
+    { n: "Technical", c: "The tool's functional reach matches the system's decisional architecture, point for point, at matching granularity.",
+      f: "Floor. The counterpart cannot let the claimant identify the specific ground of the adverse decision, or returns the same output whatever the system decided." },
+    { n: "Economic", c: "Contestation is made affordable, parity of effort, with the burden on the deployer first and a regulator second, never on the claimant.",
+      f: "Floor. Contestation stays infeasible for a substantial share of the affected population, or the deployer funds none of it." },
+    { n: "Temporal", c: "The counterpart fits the system's deadlines and co-evolves with it, with advance disclosure of changes.",
+      f: "Floor. The counterpart cannot be used inside the deadline, or a silent system change has broken it and it has not been updated." },
+    { n: "Empirical", c: "The counterpart works in fact, measured corrective yield at level 3, reaching the whole affected population.",
+      f: "Floor. A high-stakes system is met only by information with no route to correction, yield is null or unmeasured, or the tool excludes the people most affected." },
+    { n: "Accountability", c: "Responsibility is locatable and independent, a clear duty-bearer chain and a route from individual failures to structural correction.",
+      f: "Floor. No independent body answers for the counterpart, or the deploying institution monitors its own shield." }
+  ],
+
+  profiles: {
+    eligibility: {
+      desc: "A state agency's automated system screens applications for Medicaid, food and cash assistance and issues denials with standardized reason codes.",
+      f1: 5, vuln: 4, f2: 4, f3: 3, a1: 4, a2: 4, a3: 3, a4: 2, a5: 3, a6: 4,
+      kdma: 1, tension: "Program integrity vs access to benefits"
+    },
+    fraud: {
+      desc: "A state system flags benefit claims as fraudulent and imposes penalties on its own, seizing refunds and garnishing wages, sending notice to a dormant online account.",
+      f1: 4, vuln: 5, f2: 5, f3: 2, a1: 5, a2: 5, a3: 5, a4: 3, a5: 5, a6: 5,
+      kdma: 2, tension: "Fraud prevention vs access to benefits"
+    },
+    carebudget: {
+      desc: "A budget formula sets how many hours of Medicaid home care each person receives, and a new version cuts hours for many recipients.",
+      f1: 5, vuln: 5, f2: 4, f3: 3, a1: 4, a2: 4, a3: 3, a4: 5, a5: 5, a6: 5,
+      kdma: 1, tension: "Cost containment vs adequacy of care"
+    },
+    scoring: {
+      desc: "A proprietary value-added algorithm scores public employees' performance, and the scores drive termination decisions.",
+      f1: 4, vuln: 3, f2: 4, f3: 2, a1: 4, a2: 5, a3: 3, a4: 5, a5: 4, a6: 4,
+      kdma: 1, tension: "Workforce efficiency vs fair evaluation"
+    },
+    risk: {
+      desc: "A proprietary risk-assessment score is placed before judges at criminal sentencing as one input among others.",
+      f1: 5, vuln: 3, f2: 3, f3: 2, a1: 3, a2: 4, a3: 2, a4: 5, a5: 4, a6: 2,
+      kdma: 2, tension: "Public safety vs individualized sentencing"
+    },
+    booking: {
+      desc: "A government booking website is the only door to regularizing one's status, slots appear for seconds at unpredictable hours, and the affected population owns phones, not computers.",
+      f1: 5, vuln: 5, f2: 4, f3: 2, a1: 4, a2: 4, a3: 5, a4: 3, a5: 4, a6: 5,
+      kdma: 0, tension: ""
+    }
+  }
+};
+</script>
+
+<script>
+/* ============================================================
+   APP LOGIC
+   Blocks: render factors & dimensions · KDMA input · scoring ·
+   results (gauge, analysis, package) · profiles ·
+   saved analyses (localStorage) · reveal
+   ============================================================ */
+(function () {
+  "use strict";
+
+  var $ = function (sel) { return document.querySelector(sel); };
+  var esc = function (s) {
+    return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;")
+                    .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  };
+
+  /* ---------- render factor sliders ---------- */
+  function factorHTML(f, isCounter) {
+    return '<div class="factor' + (isCounter ? " counter" : "") + '" id="wrap-' + f.id + '">' +
+      '<div class="factor-head">' +
+        '<span class="label">' + esc(f.num) + " &middot; " + esc(f.title) + "</span>" +
+        '<output id="out-' + f.id + '" for="' + f.id + '">3 &middot; ' + esc(f.words[2]) + "</output>" +
+      "</div>" +
+      '<p class="desc">' + esc(f.desc) + "</p>" +
+      '<p class="anchor">' + esc(f.anchor) + "</p>" +
+      '<label class="visually-hidden" for="' + f.id + '">' + esc(f.title) + ", 1 to 5</label>" +
+      '<input class="range" type="range" id="' + f.id + '" min="1" max="5" step="1" value="3">' +
+      '<div class="ends"><span>' + esc(f.left) + "</span><span>" + esc(f.right) + "</span></div>" +
+    "</div>";
+  }
+
+  $("#mathews-factors").innerHTML = DATA.mathews.map(function (f) {
+    return factorHTML(f, f.counter);
+  }).join("");
+  $("#auto-factors").innerHTML = DATA.auto.map(function (f) {
+    return factorHTML(f, false);
+  }).join("");
+
+  /* static five-dimensions reference card */
+  $("#dims").innerHTML = DATA.dims.map(function (d) {
+    return "<li><strong>" + esc(d.n) + "</strong>" + esc(d.c) +
+           '<span class="floor">' + esc(d.f) + "</span></li>";
+  }).join("");
+
+  var allFactors = DATA.mathews.concat(DATA.auto);
+  var guideSelects = {}; /* populated by the guided assessment block below */
+
+  function paintRange(f) {
+    var el = $("#" + f.id);
+    var v = parseInt(el.value, 10);
+    var pct = ((v - 1) / 4) * 100;
+    var color = (f.id === "f3") ? "rgba(200,16,46,.55)" : "rgba(59,130,246,.55)";
+    el.style.background = "linear-gradient(90deg," + color + " " + pct + "%, #0f172a " + pct + "%)";
+    $("#out-" + f.id).innerHTML = v + " &middot; " + esc(f.words[v - 1]);
+  }
+
+  var hasResult = false;
+  function markStale() {
+    if (hasResult) $("#stale").hidden = false;
+  }
+
+  allFactors.forEach(function (f) {
+    var el = $("#" + f.id);
+    el.addEventListener("input", function () {
+      paintRange(f);
+      if (guideSelects[f.id]) guideSelects[f.id].value = el.value;
+      markStale();
+    });
+    paintRange(f);
+  });
+
+  $("#sys-desc").addEventListener("input", markStale);
+  $("#kdma-level").addEventListener("change", markStale);
+  $("#kdma-text").addEventListener("input", markStale);
+
+  /* ---------- read inputs & score ---------- */
+  function readInputs() {
+    var v = {
+      desc: $("#sys-desc").value.trim(),
+      kdma: parseInt($("#kdma-level").value, 10),
+      tension: $("#kdma-text").value.trim()
+    };
+    allFactors.forEach(function (f) { v[f.id] = parseInt($("#" + f.id).value, 10); });
+    return v;
+  }
+
+  function computeScore(v) {
+    var base = (v.f1 + v.vuln + v.f2) / 3;
+    var adjusted = base - 0.4 * (v.f3 - 3);
+    var autoAvg = (v.a1 + v.a2 + v.a3 + v.a4 + v.a5 + v.a6) / 6;
+    var final = adjusted + 0.4 * (autoAvg - 3) + 0.25 * v.kdma;
+    final = Math.max(1, Math.min(5, final));
+    return Math.round(final * 10) / 10;
+  }
+
+  /* duty intensity to required level. The maximal band implements the
+     framework's full trigger profile (thesis ch. 6): severe immediate
+     harm (f1), a vulnerable population (vuln), no human point of
+     recourse (a3), and opacity (a1) or proprietary secrecy (a4), on
+     top of a high composite score. Band cutoffs run on the displayed
+     one-decimal score, held as integer tenths so the comparisons are
+     exact; a raw value from 4.25 upward therefore displays 4.3 and
+     sits at the maximal cutoff. */
+  function levelFor(score, v) {
+    var tenths = Math.round(score * 10);
+    if (tenths >= 43 && v.f1 >= 4 && v.a3 >= 4 && v.vuln >= 4 && (v.a1 >= 4 || v.a4 >= 4)) {
+      return { level: DATA.levels[3], num: 4 };
+    }
+    if (tenths < 23) return { level: DATA.levels[0], num: 1 };
+    if (tenths < 34) return { level: DATA.levels[1], num: 2 };
+    return { level: DATA.levels[2], num: 3 };
+  }
+
+  /* ---------- analysis text ---------- */
+  function band(x) { return x >= 4 ? "high" : (x === 3 ? "mid" : "low"); }
+
+  function buildAnalysis(v, score, lv) {
+    var out = [];
+    if (v.desc) out.push("<p><em>Your system.</em> " + esc(v.desc) + "</p>");
+    out.push("<p>" + DATA.analysis.f1[band(v.f1)] + "</p>");
+    out.push("<p>" + DATA.analysis.vuln[band(v.vuln)] + "</p>");
+    out.push("<p>" + DATA.analysis.f2[band(v.f2)] + "</p>");
+    out.push("<p>" + DATA.analysis.f3[band(v.f3)] + "</p>");
+    var highs = DATA.auto.filter(function (f) { return v[f.id] >= 4; });
+    out.push("<p>" + DATA.analysis.autoIntro + "</p>");
+    highs.forEach(function (f) {
+      out.push("<p>" + DATA.analysis.autoHigh[f.id] + "</p>");
+    });
+    if (highs.length < DATA.auto.length) out.push("<p>" + DATA.analysis.autoCalm + "</p>");
+    if (v.kdma >= 1) {
+      var degree = (v.kdma === 2 ? DATA.analysis.kdma.core : DATA.analysis.kdma.partial) +
+                   (v.tension ? ", " + esc(v.tension) : "");
+      out.push("<p>" + DATA.analysis.kdma.present.replace("{TENSION}", degree) + "</p>");
+    }
+    out.push("<p><strong>" + esc(lv.level.name) + " (" + score.toFixed(1) + " of 5 duty intensity).</strong> " +
+      lv.level.text + " The meter runs the framework's classification and the Mathews balance together, the exact weights are study choices.</p>");
+    return out.join("");
+  }
+
+  function buildSafeguards(v, lvlNum) {
+    var items = DATA.safeguards.filter(function (s) { return s.when(v, lvlNum); });
+    if (!items.length) items = [DATA.safeguardFallback];
+    return items.map(function (s) {
+      return "<li>" + esc(s.text) + '<span class="cite">' + esc(s.cite) + "</span></li>";
+    }).join("");
+  }
+
+  /* ---------- calibrate ---------- */
+  var lastResult = null;
+
+  $("#btn-calibrate").addEventListener("click", function () {
+    var v = readInputs();
+    var score = computeScore(v);
+    var lv = levelFor(score, v);
+
+    $("#results").hidden = false;
+    $("#needle").style.left = (((score - 1) / 4) * 100) + "%";
+    $("#verdict").textContent = lv.level.name;
+    $("#score-line").textContent = score.toFixed(1) + " / 5 duty intensity on the study scale";
+    $("#analysis").innerHTML = buildAnalysis(v, score, lv);
+    $("#safeguards").innerHTML = buildSafeguards(v, lv.num);
+
+    hasResult = true;
+    lastResult = { inputs: v, score: score, level: lv.level.name };
+    $("#stale").hidden = true;
+    try { $("#results").scrollIntoView({ behavior: "smooth", block: "start" }); }
+    catch (e) { /* viewers without smooth scroll */ }
+  });
+
+  /* ---------- guided assessment (Step 1.5) ---------- */
+  document.querySelectorAll("#guided select[data-target]").forEach(function (sel) {
+    guideSelects[sel.getAttribute("data-target")] = sel;
+    sel.addEventListener("change", function () {
+      if (sel.value === "") return;
+      var target = sel.getAttribute("data-target");
+      if (target === "kdma") {
+        $("#kdma-level").value = sel.value;
+      } else {
+        var f = allFactors.filter(function (x) { return x.id === target; })[0];
+        $("#" + f.id).value = sel.value;
+        paintRange(f);
+      }
+      markStale();
+      flashGuideNote();
+    });
+  });
+
+  var gqTension = $("#gq-tension");
+  gqTension.addEventListener("input", function () {
+    $("#kdma-text").value = gqTension.value;
+    markStale();
+  });
+  $("#kdma-text").addEventListener("input", function () {
+    gqTension.value = $("#kdma-text").value;
+  });
+  $("#kdma-level").addEventListener("change", function () {
+    if (guideSelects.kdma) guideSelects.kdma.value = $("#kdma-level").value;
+  });
+
+  function syncGuideFromControls() {
+    allFactors.forEach(function (f) {
+      if (guideSelects[f.id]) guideSelects[f.id].value = $("#" + f.id).value;
+    });
+    if (guideSelects.kdma) guideSelects.kdma.value = $("#kdma-level").value;
+    gqTension.value = $("#kdma-text").value;
+  }
+
+  var guideNoteTimer = null;
+  function flashGuideNote() {
+    var n = $("#guide-note");
+    n.hidden = false;
+    if (guideNoteTimer) clearTimeout(guideNoteTimer);
+    guideNoteTimer = setTimeout(function () { n.hidden = true; }, 1800);
+  }
+
+  $("#btn-guide-toggle").addEventListener("click", function () {
+    var body = $("#guide-body");
+    var hide = !body.hidden;
+    body.hidden = hide;
+    this.setAttribute("aria-expanded", String(!hide));
+    this.textContent = hide ? "Use the guided questions" : "Fill in manually instead";
+  });
+
+  /* ---------- system profiles ---------- */
+  document.querySelectorAll(".profile").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      var p = DATA.profiles[btn.dataset.profile];
+      if (!p) return;
+      $("#sys-desc").value = p.desc;
+      $("#kdma-level").value = String(p.kdma);
+      $("#kdma-text").value = p.tension || "";
+      allFactors.forEach(function (f) {
+        $("#" + f.id).value = p[f.id];
+        paintRange(f);
+      });
+      syncGuideFromControls();
+      markStale();
+    });
+  });
+
+  /* ---------- saved analyses (localStorage) ---------- */
+  var STORE_KEY = "dpc_v3";
+  function loadSaved() {
+    try {
+      var raw = localStorage.getItem(STORE_KEY);
+      var arr = raw ? JSON.parse(raw) : [];
+      return Array.isArray(arr) ? arr : [];
+    } catch (e) { return null; } /* null means storage unavailable */
+  }
+  function writeSaved(arr) {
+    try { localStorage.setItem(STORE_KEY, JSON.stringify(arr)); return true; }
+    catch (e) { return false; }
+  }
+
+  function renderSaved() {
+    var arr = loadSaved();
+    var list = $("#saved-list");
+    if (arr === null) { $("#saved-empty").textContent = "Saving is unavailable in this viewer."; list.innerHTML = ""; return; }
+    $("#saved-empty").hidden = arr.length !== 0;
+    list.innerHTML = arr.map(function (item) {
+      var d = new Date(item.ts);
+      return "<li>" +
+        '<span class="name">' + esc(item.name) + "</span>" +
+        '<span class="badge">' + esc(item.level) + " &middot; " + item.score.toFixed(1) + "</span>" +
+        '<span class="meta">' + d.toLocaleDateString() + "</span>" +
+        '<span class="saved-actions">' +
+          '<button class="btn btn-ghost" data-load="' + item.id + '">Load</button>' +
+          '<button class="btn btn-red" data-del="' + item.id + '">Delete</button>' +
+        "</span></li>";
+    }).join("");
+  }
+
+  $("#btn-save").addEventListener("click", function () {
+    var note = $("#save-note");
+    if (!lastResult) { note.textContent = "Calibrate a system first."; note.hidden = false; return; }
+    var arr = loadSaved();
+    if (arr === null) { note.textContent = "Saving is unavailable in this viewer."; note.hidden = false; return; }
+    var name = lastResult.inputs.desc ? lastResult.inputs.desc.slice(0, 70) : "Untitled system";
+    arr.unshift({
+      id: String(Date.now()),
+      ts: Date.now(),
+      name: name,
+      level: lastResult.level,
+      score: lastResult.score,
+      inputs: lastResult.inputs
+    });
+    if (!writeSaved(arr)) { note.textContent = "Saving is unavailable in this viewer."; note.hidden = false; return; }
+    note.hidden = true;
+    renderSaved();
+  });
+
+  $("#saved-list").addEventListener("click", function (e) {
+    var loadId = e.target.getAttribute("data-load");
+    var delId = e.target.getAttribute("data-del");
+    var arr = loadSaved();
+    if (arr === null) return;
+    if (delId) {
+      writeSaved(arr.filter(function (i) { return i.id !== delId; }));
+      renderSaved();
+    }
+    if (loadId) {
+      var item = arr.filter(function (i) { return i.id === loadId; })[0];
+      if (!item) return;
+      $("#sys-desc").value = item.inputs.desc || "";
+      $("#kdma-level").value = String(item.inputs.kdma || 0);
+      $("#kdma-text").value = item.inputs.tension || "";
+      allFactors.forEach(function (f) {
+        $("#" + f.id).value = item.inputs[f.id];
+        paintRange(f);
+      });
+      syncGuideFromControls();
+      $("#btn-calibrate").click();
+    }
+  });
+
+  $("#btn-clear-saved").addEventListener("click", function () {
+    writeSaved([]);
+    renderSaved();
+  });
+
+  /* ---------- Word report, a .docx assembled in the browser ----------
+     A .docx is a ZIP archive of XML parts. Everything below runs
+     offline in vanilla JS: a UTF-8 encoder, a CRC-32, a stored
+     (uncompressed) ZIP writer, and a minimal WordprocessingML
+     document. No library, no network, nothing leaves the machine. */
+
+  function utf8(s) {
+    var out = [], i, c;
+    for (i = 0; i < s.length; i++) {
+      c = s.codePointAt(i);
+      if (c > 0xFFFF) i++;
+      if (c < 0x80) out.push(c);
+      else if (c < 0x800) out.push(0xC0 | (c >> 6), 0x80 | (c & 63));
+      else if (c < 0x10000) out.push(0xE0 | (c >> 12), 0x80 | ((c >> 6) & 63), 0x80 | (c & 63));
+      else out.push(0xF0 | (c >> 18), 0x80 | ((c >> 12) & 63), 0x80 | ((c >> 6) & 63), 0x80 | (c & 63));
+    }
+    return new Uint8Array(out);
+  }
+
+  var CRC_TABLE = (function () {
+    var t = new Uint32Array(256), c, n, k;
+    for (n = 0; n < 256; n++) {
+      c = n;
+      for (k = 0; k < 8; k++) c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1);
+      t[n] = c >>> 0;
+    }
+    return t;
+  })();
+  function crc32(b) {
+    var c = 0xFFFFFFFF, i;
+    for (i = 0; i < b.length; i++) c = CRC_TABLE[(c ^ b[i]) & 0xFF] ^ (c >>> 8);
+    return (c ^ 0xFFFFFFFF) >>> 0;
+  }
+
+  function zipStore(files) {
+    var chunks = [], central = [], offset = 0;
+    var now = new Date();
+    var dt = ((now.getHours() << 11) | (now.getMinutes() << 5) | (now.getSeconds() >> 1)) & 0xFFFF;
+    var dd = (((now.getFullYear() - 1980) << 9) | ((now.getMonth() + 1) << 5) | now.getDate()) & 0xFFFF;
+    function u16(v) { return [v & 255, (v >>> 8) & 255]; }
+    function u32(v) { return [v & 255, (v >>> 8) & 255, (v >>> 16) & 255, (v >>> 24) & 255]; }
+    files.forEach(function (f) {
+      var name = utf8(f.name);
+      var data = typeof f.data === "string" ? utf8(f.data) : f.data;
+      var crc = crc32(data);
+      var head = new Uint8Array([].concat(
+        u32(0x04034b50), u16(20), u16(0), u16(0), u16(dt), u16(dd),
+        u32(crc), u32(data.length), u32(data.length), u16(name.length), u16(0)));
+      chunks.push(head, name, data);
+      central.push({ name: name, crc: crc, size: data.length, off: offset });
+      offset += head.length + name.length + data.length;
+    });
+    var cdStart = offset, cdLen = 0;
+    central.forEach(function (e) {
+      var rec = new Uint8Array([].concat(
+        u32(0x02014b50), u16(20), u16(20), u16(0), u16(0), u16(dt), u16(dd),
+        u32(e.crc), u32(e.size), u32(e.size), u16(e.name.length),
+        u16(0), u16(0), u16(0), u16(0), u32(0), u32(e.off)));
+      chunks.push(rec, e.name);
+      cdLen += rec.length + e.name.length;
+    });
+    chunks.push(new Uint8Array([].concat(
+      u32(0x06054b50), u16(0), u16(0), u16(central.length), u16(central.length),
+      u32(cdLen), u32(cdStart), u16(0))));
+    var total = 0;
+    chunks.forEach(function (c) { total += c.length; });
+    var out = new Uint8Array(total), pos = 0;
+    chunks.forEach(function (c) { out.set(c, pos); pos += c.length; });
+    return out;
+  }
+
+  /* WordprocessingML helpers */
+  function xesc(s) {
+    return String(s)
+      .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, "")
+      .replace(/&/g, "&amp;").replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  }
+  function wRun(text, o) {
+    o = o || {};
+    var pr = "";
+    if (o.b) pr += "<w:b/>";
+    if (o.i) pr += "<w:i/>";
+    if (o.color) pr += '<w:color w:val="' + o.color + '"/>';
+    if (o.sz) pr += '<w:sz w:val="' + o.sz + '"/><w:szCs w:val="' + o.sz + '"/>';
+    var t = xesc(text).replace(/\n/g, '</w:t><w:br/><w:t xml:space="preserve">');
+    return "<w:r>" + (pr ? "<w:rPr>" + pr + "</w:rPr>" : "") +
+           '<w:t xml:space="preserve">' + t + "</w:t></w:r>";
+  }
+  function wPara(runs, o) {
+    o = o || {};
+    var pr = "";
+    if (o.bullet) pr += '<w:numPr><w:ilvl w:val="0"/><w:numId w:val="1"/></w:numPr>';
+    if (o.ind) pr += '<w:ind w:left="' + o.ind + '"/>';
+    pr += '<w:spacing w:before="' + (o.before || 0) + '" w:after="' + (o.after == null ? 120 : o.after) + '"/>';
+    return "<w:p><w:pPr>" + pr + "</w:pPr>" +
+           (Array.isArray(runs) ? runs.join("") : runs) + "</w:p>";
+  }
+  function wHead(text) { return wPara(wRun(text, { b: true, sz: 28 }), { before: 280, after: 130 }); }
+
+  /* Convert a rendered node (analysis paragraphs, safeguard items)
+     into runs, preserving em/strong as italic/bold. */
+  function runsFromNode(node, inherit) {
+    var out = [];
+    Array.prototype.forEach.call(node.childNodes, function (ch) {
+      if (ch.nodeType === 3) {
+        if (ch.nodeValue) out.push(wRun(ch.nodeValue, inherit));
+        return;
+      }
+      if (ch.nodeType !== 1) return;
+      if (ch.classList && ch.classList.contains("cite")) return;
+      var o = { b: !!(inherit && inherit.b), i: !!(inherit && inherit.i) };
+      if (ch.tagName === "EM" || ch.tagName === "I") o.i = true;
+      if (ch.tagName === "STRONG" || ch.tagName === "B") o.b = true;
+      out = out.concat(runsFromNode(ch, o));
+    });
+    return out;
+  }
+
+  var KDMA_LABELS = ["No, largely ministerial rules",
+                     "Partly, contested at the margins",
+                     "Yes, a core value trade-off"];
+
+  function buildReportBody() {
+    var v = lastResult.inputs;
+    var body = [];
+    var dateLine = new Date().toLocaleDateString(undefined,
+      { year: "numeric", month: "long", day: "numeric" });
+
+    body.push(wPara(wRun("Due Process Calibration Report", { b: true, sz: 40, color: "C8102E" }), { after: 40 }));
+    body.push(wPara(wRun("Countervailing Co-Deployment framework · duty meter", { i: true, color: "555555" }), { after: 60 }));
+    body.push(wPara(wRun("Generated on " + dateLine +
+      " by the Due Process Calibrator, a single-file offline tool. MIT License.",
+      { sz: 18, color: "666666" }), { after: 200 }));
+
+    body.push(wHead("1. The system under calibration"));
+    body.push(wPara(wRun(v.desc || "No description provided.")));
+
+    body.push(wHead("2. Result"));
+    body.push(wPara([wRun($("#verdict").textContent, { b: true }),
+                     wRun("  ·  " + $("#score-line").textContent)]));
+
+    body.push(wHead("3. Classification inputs"));
+    body.push(wPara(wRun("The stakes, in the Mathews register", { b: true }), { after: 60 }));
+    DATA.mathews.forEach(function (f) {
+      body.push(wPara([wRun(f.title + ": ", { b: true }),
+        wRun(v[f.id] + " of 5 — " + f.words[v[f.id] - 1])], { bullet: true, after: 40 }));
+    });
+    body.push(wPara(wRun("The asymmetry profile of the bare system", { b: true }), { before: 120, after: 60 }));
+    DATA.auto.forEach(function (f) {
+      body.push(wPara([wRun(f.num + ", " + f.title.toLowerCase() + ": ", { b: true }),
+        wRun(v[f.id] + " of 5 — " + f.words[v[f.id] - 1])], { bullet: true, after: 40 }));
+    });
+    body.push(wPara([wRun("Contested value judgments, the KDMA input: ", { b: true }),
+      wRun(KDMA_LABELS[v.kdma] + (v.tension ? ". Values in tension: " + v.tension : ""))],
+      { before: 120 }));
+
+    body.push(wHead("4. Written analysis"));
+    Array.prototype.forEach.call(document.querySelectorAll("#analysis p"), function (p) {
+      body.push(wPara(runsFromNode(p, null)));
+    });
+
+    body.push(wHead("5. The countervailing package"));
+    Array.prototype.forEach.call(document.querySelectorAll("#safeguards li"), function (li) {
+      var runs = runsFromNode(li, null);
+      var cite = li.querySelector(".cite");
+      if (cite) runs.push(wRun(" — " + cite.textContent, { i: true, color: "666666" }));
+      body.push(wPara(runs, { bullet: true, after: 80 }));
+    });
+
+    body.push(wHead("6. The five dimensions for judging the package"));
+    body.push(wPara(wRun("Once the countervailing tool exists, its proportionality is judged on five axes, each with a floor below which co-deployment is absent on that axis.", { i: true })));
+    DATA.dims.forEach(function (dm) {
+      body.push(wPara([wRun(dm.n + ". ", { b: true }), wRun(dm.c)], { after: 40 }));
+      body.push(wPara(wRun(dm.f, { i: true, color: "555555" }), { ind: 360, after: 140 }));
+    });
+
+    body.push(wHead("7. Standing caveat"));
+    body.push(wPara(wRun("The calibrator organizes reasoning under a framework. It does not deliver legal advice, and its numeric weights are study choices that carry no legal authority. Treat the level as a structured argument about what the state owes the affected person, always read together with the written analysis above.")));
+
+    body.push(wPara(wRun("Due Process Calibrator · Countervailing Co-Deployment thesis · report assembled offline in the browser",
+      { sz: 16, color: "888888" }), { before: 240 }));
+
+    return body.join("");
+  }
+
+  function buildDocxParts() {
+    var XH = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>';
+    var stamp = new Date().toISOString().replace(/\.\d{3}Z$/, "Z");
+    var documentXml = XH +
+      '<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body>' +
+      buildReportBody() +
+      '<w:sectPr><w:pgSz w:w="11906" w:h="16838"/>' +
+      '<w:pgMar w:top="1440" w:right="1440" w:bottom="1440" w:left="1440"/></w:sectPr>' +
+      "</w:body></w:document>";
+    var numberingXml = XH +
+      '<w:numbering xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">' +
+      '<w:abstractNum w:abstractNumId="0"><w:multiLevelType w:val="singleLevel"/>' +
+      '<w:lvl w:ilvl="0"><w:numFmt w:val="bullet"/><w:lvlText w:val="&#8226;"/><w:lvlJc w:val="left"/>' +
+      '<w:pPr><w:ind w:left="360" w:hanging="360"/></w:pPr></w:lvl></w:abstractNum>' +
+      '<w:num w:numId="1"><w:abstractNumId w:val="0"/></w:num></w:numbering>';
+    var contentTypes = XH +
+      '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">' +
+      '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>' +
+      '<Default Extension="xml" ContentType="application/xml"/>' +
+      '<Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>' +
+      '<Override PartName="/word/numbering.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.numbering+xml"/>' +
+      '<Override PartName="/docProps/core.xml" ContentType="application/vnd.openxmlformats-package.core-properties+xml"/>' +
+      "</Types>";
+    var relsRoot = XH +
+      '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' +
+      '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/>' +
+      '<Relationship Id="rId2" Type="http://schemas.openxmlformats.org/package/2006/relationships/metadata/core-properties" Target="docProps/core.xml"/>' +
+      "</Relationships>";
+    var relsDoc = XH +
+      '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' +
+      '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/numbering" Target="numbering.xml"/>' +
+      "</Relationships>";
+    var coreXml = XH +
+      '<cp:coreProperties xmlns:cp="http://schemas.openxmlformats.org/package/2006/metadata/core-properties"' +
+      ' xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/"' +
+      ' xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">' +
+      "<dc:title>Due Process Calibration Report</dc:title>" +
+      "<dc:creator>Due Process Calibrator</dc:creator>" +
+      '<dcterms:created xsi:type="dcterms:W3CDTF">' + stamp + "</dcterms:created>" +
+      '<dcterms:modified xsi:type="dcterms:W3CDTF">' + stamp + "</dcterms:modified>" +
+      "</cp:coreProperties>";
+    return [
+      { name: "[Content_Types].xml", data: contentTypes },
+      { name: "_rels/.rels", data: relsRoot },
+      { name: "docProps/core.xml", data: coreXml },
+      { name: "word/_rels/document.xml.rels", data: relsDoc },
+      { name: "word/document.xml", data: documentXml },
+      { name: "word/numbering.xml", data: numberingXml }
+    ];
+  }
+
+  function downloadDocx(bytes, filename) {
+    try {
+      var blob = new Blob([bytes],
+        { type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document" });
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(function () { URL.revokeObjectURL(url); }, 4000);
+      return true;
+    } catch (e) { return false; }
+  }
+
+  $("#btn-word").addEventListener("click", function () {
+    var note = $("#word-note");
+    if (!lastResult) {
+      note.textContent = "Calibrate a system first.";
+      note.hidden = false;
+      return;
+    }
+    var bytes = zipStore(buildDocxParts());
+    var slug = lastResult.inputs.desc
+      ? lastResult.inputs.desc.toLowerCase().replace(/[^a-z0-9]+/g, "-")
+          .replace(/^-+|-+$/g, "").slice(0, 40).replace(/-+$/, "")
+      : "";
+    var fname = "due-process-report-" + (slug || "system") + "-" +
+                new Date().toISOString().slice(0, 10) + ".docx";
+    if (!downloadDocx(bytes, fname)) {
+      note.textContent = "Download is unavailable in this viewer.";
+      note.hidden = false;
+      return;
+    }
+    note.hidden = true;
+  });
+
+  /* ---------- companion prefill (#ccd= hash from sibling tools) ----------
+     A companion file, like SNAP Navigator, can link here with the inputs
+     encoded in the URL hash. The data travels inside the link on the
+     user's device; nothing is fetched and nothing is sent. */
+  (function importFromHash() {
+    try {
+      var m = (location.hash || "").match(/#ccd=([A-Za-z0-9_-]+)/);
+      if (!m) return;
+      var b64 = m[1].replace(/-/g, "+").replace(/_/g, "/");
+      while (b64.length % 4) b64 += "=";
+      var p = JSON.parse(decodeURIComponent(escape(atob(b64))));
+      if (!p || typeof p !== "object") return;
+      if (typeof p.desc === "string") $("#sys-desc").value = p.desc.slice(0, 2000);
+      var touchedFactor = false;
+      allFactors.forEach(function (f) {
+        var val = parseInt(p[f.id], 10);
+        if (val >= 1 && val <= 5) { $("#" + f.id).value = String(val); paintRange(f); touchedFactor = true; }
+      });
+      var k = parseInt(p.kdma, 10);
+      if (k >= 0 && k <= 2) $("#kdma-level").value = String(k);
+      if (typeof p.tension === "string") $("#kdma-text").value = p.tension.slice(0, 300);
+      syncGuideFromControls();
+      /* A payload that carries factor values, like the ones the shields
+         send, calibrates on arrival. A payload that only sets Step 4,
+         like the KDMA Elicitor's, prefills and waits for the person. */
+      if (touchedFactor) $("#btn-calibrate").click();
+    } catch (e) { /* a malformed link simply loads the page normally */ }
+  })();
+
+  /* ---------- reveal ---------- */
+  if ("IntersectionObserver" in window) {
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) {
+        if (en.isIntersecting) { en.target.classList.add("in"); io.unobserve(en.target); }
+      });
+    }, { threshold: 0.12 });
+    document.querySelectorAll(".reveal").forEach(function (el) { io.observe(el); });
+  } else {
+    document.querySelectorAll(".reveal").forEach(function (el) { el.classList.add("in"); });
+  }
+
+  /* ---------- init ---------- */
+  renderSaved();
+})();
+</script>
+</body>
+</html>

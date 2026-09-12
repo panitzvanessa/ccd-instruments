@@ -1,0 +1,1294 @@
+<!doctype html>
+<!--
+  Claimant-Side Tool Evaluator
+  Module B of the Countervailing Co-Deployment toolkit.
+  Module A (the Due Process Calibrator) fixes the level of countervailing
+  capacity the state owes. Module B measures whether an existing
+  claimant-side tool delivers it, capability by capability, on evidence.
+
+  MIT License
+
+  Copyright (c) 2026 The Countervailing Co-Deployment thesis author
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in
+  all copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Claimant-Side Tool Evaluator · CCD Module B</title>
+<style>
+/* ==========================================================
+   Shared design system with Module A (the Due Process
+   Calibrator). Blue = pressure toward more process.
+   Red = the state's unmet burden.
+   ========================================================== */
+:root{
+  --ink:#0f172a;
+  --surface:#1e293b;
+  --surface-2:#26344b;
+  --text:#e2e8f0;
+  --muted:#94a3b8;
+  --blue:#3b82f6;
+  --blue-soft:rgba(59,130,246,.14);
+  --red:#c8102e;
+  --red-bright:#ef5468;
+  --red-soft:rgba(200,16,46,.16);
+  --line:rgba(148,163,184,.18);
+  --serif:"Iowan Old Style",Palatino,"Palatino Linotype","Book Antiqua",Georgia,serif;
+  --sans:system-ui,-apple-system,"Segoe UI",Roboto,Ubuntu,sans-serif;
+  --mono:ui-monospace,"SF Mono",SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;
+  --radius:14px;
+}
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--ink);color:var(--text);font:16px/1.65 var(--sans);-webkit-font-smoothing:antialiased}
+a{color:var(--blue);text-decoration:none}
+a:hover{text-decoration:underline}
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
+textarea{font:inherit;color:var(--text)}
+.wrap{max-width:880px;margin-inline:auto;padding-inline:20px}
+.eyebrow{font:600 12px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--blue)}
+.cite{font:500 12.5px/1.5 var(--mono);color:var(--muted)}
+:focus-visible{outline:2px solid var(--blue);outline-offset:2px;border-radius:6px}
+.visually-hidden{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.section{padding-block:40px;border-top:1px solid var(--line);scroll-margin-top:74px}
+.section-head{margin-bottom:22px}
+.section-head h2{font:700 clamp(22px,4vw,30px)/1.2 var(--serif);margin:8px 0 6px}
+.section-head p{margin:0;color:var(--muted);max-width:64ch}
+.btn{border-radius:10px;padding:12px 20px;font:600 14px/1 var(--sans);transition:transform .12s ease,opacity .12s ease}
+.btn:hover{transform:translateY(-1px)}
+.btn:disabled{opacity:.4;cursor:not-allowed;transform:none}
+.btn-blue{background:var(--blue);color:#fff}
+.btn-red{background:transparent;color:#f0abb4;border:1px solid var(--red)}
+.btn-ghost{background:var(--ink);border:1px solid var(--line);color:var(--muted)}
+.btn-ghost:hover{color:var(--text)}
+.note{color:var(--muted);font-size:13px}
+
+.nav{position:sticky;top:0;z-index:40;background:rgba(15,23,42,.82);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.nav .wrap{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:54px}
+.nav .brand{font:600 12.5px/1 var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.nav .links{display:flex;gap:14px;flex-wrap:wrap}
+.nav .links a{font:600 12.5px/1 var(--sans);color:var(--muted)}
+.nav .links a:hover{color:var(--text);text-decoration:none}
+
+header.top{padding:56px 0 34px}
+header.top h1{font:700 clamp(32px,7vw,52px)/1.1 var(--serif);margin:14px 0 12px;letter-spacing:-.01em}
+header.top h1 .tick{color:var(--red);font-style:italic}
+header.top p.lede{color:var(--muted);max-width:66ch;margin:0 0 18px;font-size:17px}
+.honesty{display:flex;gap:10px;align-items:flex-start;background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--red);border-radius:10px;padding:12px 14px;max-width:66ch}
+.honesty p{margin:0;font-size:13.5px;color:var(--text)}
+.honesty .cite{display:block;margin-top:4px}
+
+#tool-desc{width:100%;min-height:110px;resize:vertical;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px;line-height:1.55}
+#tool-desc::placeholder{color:var(--muted)}
+#tool-desc:focus{border-color:var(--blue);outline:none}
+.field-row{display:grid;gap:12px;grid-template-columns:1fr;margin-top:14px}
+.field label{display:block;font:600 12px/1.4 var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--blue);margin-bottom:8px}
+.field select,.field input[type="text"]{width:100%;padding:12px 14px;font:inherit;color:var(--text);background:var(--ink);border:1px solid var(--line);border-radius:10px}
+.field select:focus,.field input[type="text"]:focus{border-color:var(--blue);outline:none}
+.field input::placeholder{color:var(--muted)}
+.field.req label{color:var(--red-bright)}
+
+.factor{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:16px 16px 14px;margin-bottom:14px}
+.factor-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap}
+.factor-head .label{font:600 12px/1.4 var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--blue)}
+.factor-head output{font:600 12.5px/1.4 var(--mono);color:var(--text);background:var(--ink);border:1px solid var(--line);border-radius:8px;padding:4px 9px;white-space:nowrap}
+.factor p.desc{margin:8px 0 4px;font-size:14px}
+.factor p.anchor{margin:0 0 12px;font:500 12.5px/1.5 var(--mono);color:var(--muted)}
+.range{-webkit-appearance:none;appearance:none;width:100%;height:6px;border-radius:99px;background:var(--ink);outline:none;display:block}
+.range::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:18px;height:18px;border-radius:50%;background:var(--blue);border:2px solid var(--ink);box-shadow:0 0 0 2px var(--blue);cursor:pointer}
+.range::-moz-range-thumb{width:14px;height:14px;border-radius:50%;background:var(--blue);border:2px solid var(--ink);box-shadow:0 0 0 2px var(--blue);cursor:pointer}
+.ends{display:flex;justify-content:space-between;margin-top:8px}
+.ends span{font:500 11px/1.4 var(--mono);color:var(--muted);max-width:46%}
+.ends span:last-child{text-align:right}
+.ev-row{display:grid;gap:10px;grid-template-columns:1fr;margin-top:12px}
+.ev-field label{display:block;font:600 11px/1.4 var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.ev-field select,.ev-field input[type="text"]{width:100%;padding:10px 12px;font:inherit;font-size:14px;color:var(--text);background:var(--ink);border:1px solid var(--line);border-radius:10px}
+.ev-field select:focus,.ev-field input[type="text"]:focus{border-color:var(--blue);outline:none}
+.ev-field input::placeholder{color:var(--muted)}
+.cap-note{margin:10px 0 0;font:500 12.5px/1.5 var(--mono);color:var(--red-bright)}
+.cap-note[hidden]{display:none}
+
+details.how{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 16px;margin:6px 0 0}
+details.how summary{cursor:pointer;font:600 13.5px/1.4 var(--sans);color:var(--muted)}
+details.how summary:hover{color:var(--text)}
+details.how p{font-size:13.5px;color:var(--muted);margin:10px 0 0}
+
+.calibrate-row{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-top:20px}
+#stale{font:500 12.5px/1.4 var(--mono);color:var(--red-bright)}
+#stale[hidden]{display:none}
+
+#results[hidden]{display:none}
+.gauge{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:22px 18px 16px;margin-bottom:18px}
+.beam{position:relative;height:10px;border-radius:99px;margin:26px 6px 6px;background:linear-gradient(90deg,var(--blue-soft) 0%,var(--red-soft) 60%,var(--red) 100%);border:1px solid var(--line)}
+.beam .zone-tick{position:absolute;top:-6px;bottom:-6px;width:1px;background:var(--line)}
+.needle{position:absolute;top:-12px;width:2px;height:34px;background:var(--text);border-radius:2px;transition:left .6s ease;transform:translateX(-1px)}
+.needle::after{content:"";position:absolute;top:-7px;left:50%;transform:translateX(-50%);width:11px;height:11px;border-radius:50%;background:var(--red-bright);border:2px solid var(--ink);box-shadow:0 0 0 2px var(--red)}
+.zone-labels{display:flex;justify-content:space-between;margin:12px 6px 0}
+.zone-labels span{font:500 10.5px/1.4 var(--mono);color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
+.readout{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap;margin-top:16px}
+.verdict{font:700 clamp(22px,4.4vw,30px)/1.2 var(--serif);margin:0}
+.readout .score{font:600 13px/1.4 var(--mono);color:var(--muted)}
+.gauge .honesty{margin-top:14px;max-width:none}
+
+.result-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:18px;margin-bottom:16px}
+.result-card h3{font:600 12px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--blue);margin:0 0 12px}
+#assessment p{margin:0 0 12px;font-size:14.5px}
+#assessment p:last-child{margin-bottom:0}
+#assessment em{font-style:italic}
+#levels-line{font:600 13.5px/1.6 var(--mono);margin:0}
+.dimroll{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.dimroll li{background:var(--ink);border:1px solid var(--line);border-left:3px solid var(--red);border-radius:10px;padding:11px 13px;font-size:13.5px}
+.dimroll li strong{display:block;font:600 11px/1.4 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:#f0abb4;margin-bottom:4px}
+.dimroll li .floor{display:block;margin-top:5px;font:500 12px/1.5 var(--mono);color:var(--muted)}
+.dimroll li .members{display:block;margin-top:5px;font:500 12px/1.5 var(--mono);color:var(--muted)}
+.fixlist,.u-list{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.fixlist li,.u-list li{background:var(--ink);border:1px solid var(--line);border-left:3px solid var(--blue);border-radius:10px;padding:11px 13px;font-size:14px}
+.u-list li{border-left-color:var(--red)}
+
+.saved-list{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.saved-list li{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.saved-list .name{font-weight:600;font-size:14px;flex:1 1 220px}
+.saved-list .meta{font:500 11.5px/1.5 var(--mono);color:var(--muted)}
+.saved-list .badge{font:600 12px/1 var(--mono);padding:5px 9px;border-radius:7px;background:var(--red-soft);color:#f0abb4;white-space:nowrap}
+.saved-actions{display:flex;gap:8px}
+.saved-actions .btn{padding:8px 12px;font-size:12.5px}
+#saved-empty{color:var(--muted);font-style:italic;font-size:14px}
+#save-note[hidden]{display:none}
+#word-note[hidden]{display:none}
+
+footer{border-top:1px solid var(--line);padding:26px 0 40px;margin-top:48px}
+footer p{color:var(--muted);font-size:13px;margin:4px 0}
+
+#manual h3{font:700 19px/1.3 var(--serif);margin:26px 0 8px}
+#manual h4{font:600 15px/1.4 var(--sans);margin:18px 0 6px}
+#manual p,#manual li{font-size:14.5px;color:var(--text)}
+#manual p{margin:0 0 10px;max-width:72ch}
+#manual ul,#manual ol{margin:0 0 12px;padding-left:22px}
+#manual .license{font:500 12.5px/1.7 var(--mono);color:var(--muted);background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px;max-width:none;white-space:pre-wrap}
+
+.reveal{opacity:0;transform:translateY(12px);transition:opacity .5s ease,transform .5s ease}
+.reveal.in{opacity:1;transform:none}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+  html{scroll-behavior:auto}
+  .reveal{opacity:1;transform:none}
+}
+@media (min-width:760px){
+  .cap-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .cap-grid .factor{margin-bottom:0}
+  .section{padding-block:52px}
+  .field-row{grid-template-columns:1fr 280px}
+  .ev-row{grid-template-columns:260px 1fr}
+}
+</style>
+</head>
+<body>
+
+<nav class="nav" aria-label="Sections">
+  <div class="wrap">
+    <span class="brand">CCD &middot; Module B</span>
+    <span class="links">
+      <a href="#tool">Tool</a>
+      <a href="#caps">Capabilities</a>
+      <a href="#results">Result</a>
+      <a href="#saved">Saved</a>
+      <a href="#manual">Manual</a>
+    </span>
+  </div>
+</nav>
+
+<header class="top wrap">
+  <span class="eyebrow">Countervailing Co-Deployment &middot; Module B</span>
+  <h1>Claimant-Side Tool <span class="tick">Evaluator</span></h1>
+  <p class="lede">Module A, the Due Process Calibrator, fixes the level of countervailing capacity the
+     state owes when it deploys an automated decision system. This module asks the next question,
+     the one in steps 3 and 4 of the framework's procedure: does the claimant-side tool that
+     actually exists deliver that level? It scores thirteen capabilities on evidence, rolls them up
+     into the framework's five proportionality dimensions, and measures the due-process gap
+     between what is required and what is delivered, read against the duty itself.</p>
+  <div class="honesty">
+    <p>This is a design instrument, not a legal finding. It evaluates the claimant-side tool, never
+       the government system, and never intentions or marketing claims: a capability exists only if
+       evidence shows it, and where evidence is insufficient the lower score applies. The
+       percentages and level anchors are study choices with no legal authority.
+       <span class="cite">Evidence rule &middot; CC Deployment framework &middot; MIT License</span></p>
+  </div>
+</header>
+
+<!-- ================= 1 · THE TOOL ================= -->
+<section class="section wrap" id="tool">
+  <div class="section-head reveal">
+    <span class="eyebrow">Step 1</span>
+    <h2>The tool under evaluation</h2>
+    <p>Describe the claimant-side tool as it exists, who ships it and what it claims, then set the
+       level Module A assigned to the government system it counters. The required level is set
+       by hand, exactly as the calibrator produced it.</p>
+  </div>
+  <label class="visually-hidden" for="tool-desc">Describe the claimant-side tool</label>
+  <textarea id="tool-desc" placeholder="e.g. A state-run appeals portal offered to people flagged by the fraud system: web forms, a document upload page, and an FAQ..."></textarea>
+  <div class="field-row">
+    <div class="field">
+      <label for="sys-name">The automated system it counters (optional)</label>
+      <input type="text" id="sys-name" placeholder="e.g. the unemployment fraud flagging system" autocomplete="off">
+    </div>
+    <div class="field req">
+      <label for="req-level">Required level, from Module A</label>
+      <select id="req-level">
+        <option value="" selected disabled>Choose the assigned level&hellip;</option>
+        <option value="minimal">Level 0 to 1 &middot; Minimal duty</option>
+        <option value="moderate">Level 2 &middot; Moderate duty</option>
+        <option value="high">Level 3 &middot; High duty</option>
+        <option value="maximal">Level 3+ &middot; Maximal duty</option>
+      </select>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 2 · CAPABILITIES ================= -->
+<section class="section wrap" id="caps">
+  <div class="section-head reveal">
+    <span class="eyebrow">Step 2</span>
+    <h2>Thirteen capabilities, on evidence</h2>
+    <p>Score only what you can show. Every capability starts at zero with no evidence, because
+       under the framework a feature that cannot be demonstrated does not exist. The evidence
+       setting caps the score: verified in use reaches the full scale, documented-only is capped
+       at 3, and no evidence counts as 0 and is reported as unverified. The tag under each
+       capability names its anchor in the thesis and the proportionality dimension it feeds.</p>
+  </div>
+  <div class="cap-grid" id="cap-grid"></div>
+  <details class="how">
+    <summary>How the numbers are built</summary>
+    <p>Each capability's effective score is the slider value limited by its evidence cap. Delivered
+       capacity is the plain average of the thirteen effective scores, expressed as a percentage of
+       the full scale. The required level maps to a required percentage, Minimal 30, Moderate 55,
+       High 80, Maximal 92, and the due-process gap is the shortfall in points between the two.
+       The gap is then read <em>relative to the duty itself</em>, gap divided by the required
+       percentage, so delivering nothing against a Minimal duty is a 100% shortfall of that duty,
+       not a small absolute number. The relative shortfall sets the five bands, under 20 minimal
+       deficit, under 40 moderate, under 60 serious, under 80 critical, and 80 or above structural
+       failure, and the compliance reading, no gap fully compliant, under 40 partially, otherwise
+       non-compliant. One exception outranks the average: when any dimension sits at or near its
+       floor, the verdict is withheld from full compliance even at zero gap, because under the
+       framework the lowest dimension is the binding constraint and floors are minimums an average
+       cannot buy back. Because the capabilities are averaged, the dimensions carry unequal
+       implicit weight, Technical five capabilities of thirteen, Accountability three, Economic
+       and Empirical two each, Temporal one, a study choice, disclosed as such. All of these
+       numbers are study choices with no legal authority.</p>
+  </details>
+  <div class="calibrate-row">
+    <button class="btn btn-blue" id="btn-evaluate">Evaluate the tool</button>
+    <span id="stale" hidden>Inputs changed, evaluate again</span>
+    <span class="note" id="eval-note" role="status" hidden></span>
+  </div>
+</section>
+
+<!-- ================= 3 · RESULT ================= -->
+<section class="section wrap" id="results" hidden>
+  <div class="section-head">
+    <span class="eyebrow">Result</span>
+    <h2>The due-process gap</h2>
+  </div>
+  <div class="gauge">
+    <div class="beam">
+      <span class="zone-tick" style="left:20%"></span>
+      <span class="zone-tick" style="left:40%"></span>
+      <span class="zone-tick" style="left:60%"></span>
+      <span class="zone-tick" style="left:80%"></span>
+      <span class="needle" id="needle" style="left:0%"></span>
+    </div>
+    <div class="zone-labels">
+      <span>Minimal</span><span>Moderate</span><span>Serious</span><span>Critical</span><span>Structural</span>
+    </div>
+    <div class="readout" aria-live="polite">
+      <p class="verdict" id="verdict"></p>
+      <span class="score" id="score-line"></span>
+    </div>
+    <div class="honesty">
+      <p id="levels-line"></p>
+    </div>
+  </div>
+
+  <div class="result-card"><h3>Written assessment</h3><div id="assessment"></div></div>
+  <div class="result-card"><h3>The five dimensions, rolled up</h3><ul class="dimroll" id="dimrolls"></ul></div>
+  <div class="result-card"><h3>The weakest points</h3><ul class="dimroll" id="weakest"></ul></div>
+  <div class="result-card"><h3>The smallest set of improvements</h3><ul class="fixlist" id="fixes"></ul></div>
+  <div class="result-card"><h3>Unverified capabilities</h3><ul class="u-list" id="unverified"></ul></div>
+
+  <div class="calibrate-row">
+    <button class="btn btn-blue" id="btn-word">Download the Word report</button>
+    <button class="btn btn-ghost" id="btn-save">Save this evaluation</button>
+    <span class="note" id="word-note" role="status" hidden></span>
+    <span class="note" id="save-note" role="status" hidden></span>
+  </div>
+</section>
+
+<!-- ================= 4 · SAVED ================= -->
+<section class="section wrap" id="saved">
+  <div class="section-head reveal">
+    <span class="eyebrow">Saved</span>
+    <h2>Saved evaluations</h2>
+    <p>Stored in this browser on this device through localStorage, nothing leaves the machine.</p>
+  </div>
+  <p id="saved-empty">No saved evaluations yet.</p>
+  <ul class="saved-list" id="saved-list"></ul>
+  <div class="calibrate-row">
+    <button class="btn btn-ghost" id="btn-export">Export as JSON</button>
+    <button class="btn btn-ghost" id="btn-import">Import JSON</button>
+    <button class="btn btn-red" id="btn-clear-saved">Clear all</button>
+    <span class="note" id="io-note" role="status" hidden></span>
+    <input type="file" id="import-file" accept="application/json,.json" class="visually-hidden" aria-label="Import saved evaluations from a JSON file">
+  </div>
+</section>
+
+<!-- ================= 5 · MANUAL ================= -->
+<section class="section wrap" id="manual">
+  <div class="section-head reveal">
+    <span class="eyebrow">Manual</span>
+    <h2>How to use the evaluator</h2>
+  </div>
+
+  <h3>1. What this tool is, and is not</h3>
+  <p>The Countervailing Co-Deployment framework runs in two modules. Module A, the Due Process
+     Calibrator, classifies the government's automated system and fixes the co-deployment level
+     the state owes, steps 1 and 2 of the framework's procedure. This module is steps 3 and 4:
+     it scores an already existing claimant-side counterpart on the framework's terms and applies
+     the proportionality dimensions to it. The question is never whether the tool is good in the
+     abstract. The question is whether the tool is sufficient for the due-process obligation the
+     automated system generates.</p>
+  <p>It evaluates the claimant-side tool, not the government system, and it evaluates capabilities
+     actually available to the claimant, not intentions or marketing claims.</p>
+
+  <h3>2. The evidence discipline</h3>
+  <p>Every capability carries an evidence setting, and the setting caps the score. Verified in use
+     opens the full 0 to 5 scale. Documented only, claims in manuals or announcements that were
+     not observed working, is capped at 3, no undemonstrated feature can score above the midpoint.
+     No evidence counts as 0, the framework assumes a capability exists only if there is concrete
+     evidence that it exists, and every capability left in that state is reported, by name, as
+     unverified rather than merely absent. When in doubt between two settings, choose the lower
+     one.</p>
+
+  <h3>3. The thirteen capabilities and where they come from</h3>
+  <p>Capabilities 1 to 5 are the five claimant functions of thesis chapter 4, translation,
+     eligibility explanation, evidence mapping, error and mismatch detection, and contestation
+     support, they feed the Technical dimension. Accessibility and cost of contestation feed the
+     Economic dimension, parity of effort and deployer-funded contestation. Continuous maintenance
+     feeds the Temporal dimension. Resistance to category mimicry, a chapter 9 design condition,
+     and practical effectiveness feed the Empirical dimension. Explainability of the tool itself
+     and claimant data sovereignty, both chapter 9 design conditions, and human escalation feed
+     the Accountability dimension. The five dimensions and their floors are chapter 6's, quoted
+     unchanged from Module A. Because the thirteen capabilities are averaged with equal weight,
+     the dimensions weigh unequally in the delivered score, Technical the most at five of
+     thirteen, Temporal the least at one, a study choice, stated here so no one mistakes it for a
+     claim of the thesis.</p>
+
+  <h3>4. Reading the result</h3>
+  <p>Press <strong>Evaluate the tool</strong> to produce the result, the button asks you to choose
+     the required level first if you have not. If you change any input afterwards, the flag
+     <em>Inputs changed, evaluate again</em> stays up until you re-evaluate, and everything on
+     screen, including the Word report, keeps following the last evaluated result, never the
+     moved controls.</p>
+  <p>The gauge shows the due-process gap read against the duty itself, the shortfall as a share of
+     what the assigned level requires, in five bands. Fully compliant means no gap and no
+     dimension at its floor. Compliant on average, a floor is breached, means the averages meet
+     the level but at least one dimension sits at or near its floor, the framework withholds full
+     compliance there because the lowest dimension is the binding constraint, and the final
+     qualitative floor judgment rests with you. Partially compliant covers relative shortfalls
+     under 40, non-compliant the rest. The levels line reconciles the two readings of the same
+     result, the band and the level ladder, by stating how many points short of the required
+     level the tool sits. The criterion shown with each dimension is its <em>top anchor</em>,
+     what a 5 looks like, not a description of the observed state, the floor beneath it is the
+     minimum. The weakest points rank the three lowest dimensions, quoting the floor only where a
+     dimension actually sits at or near it. The smallest set of improvements lists, in order of
+     impact, the capability gains that would close the gap, starting with what is unverified, and
+     its last item stops at the exact point that closes it. Saved evaluations live in this
+     browser's localStorage, use Export as JSON to take them to another machine and Import JSON
+     to bring them back, imports merge by id and never overwrite what is already here.</p>
+
+  <h3>5. Saving your work, and the Word report</h3>
+  <p>Save this evaluation stores the current tool, its evidence record, and the result in this
+     browser on this device. It never leaves the machine. Load reopens a saved evaluation and
+     re-evaluates it, Delete removes one, and Clear all empties the list, Export as JSON and
+     Import JSON move the whole list to and from a file, for backup or for a second device.</p>
+  <p>Once you have evaluated a tool, Download the Word report writes a .docx of the whole case,
+     the tool description and the required level, every capability's score with its evidence
+     setting and note, the five-dimension roll-up, the weakest points, the smallest set of
+     improvements, the unverified list, and the final written opinion. The file is assembled
+     entirely inside the browser, offline, nothing is sent anywhere, the same machinery Module A
+     uses for its own report.</p>
+
+  <h3>6. License</h3>
+  <p>This file is released under the MIT License. Replace the copyright line with the author's
+     legal name before distribution.</p>
+  <p class="license">MIT License
+
+Copyright (c) 2026 The Countervailing Co-Deployment thesis author
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.</p>
+
+  <h3>7. Sources behind the factors</h3>
+  <p>The five claimant functions are thesis chapter 4. The four design conditions are chapter 9.
+     The five proportionality dimensions with their floors are chapter 6, quoted unchanged from
+     Module A, where the case-law appendix behind the framework also lives. The evidence rule and
+     the twelve-capability battery originate in the evaluator brief for this module and are
+     study choices, like every number here.</p>
+</section>
+
+<footer>
+  <div class="wrap">
+    <p>Claimant-Side Tool Evaluator &middot; Module B of the Countervailing Co-Deployment toolkit.</p>
+    <p>Single file, vanilla JavaScript, fully offline, MIT License. Pairs with Module A, the Due Process Calibrator.</p>
+  </div>
+</footer>
+
+<script>
+/* ============================================================
+   DATA. Capabilities, dimensions (quoted unchanged from Module
+   A / thesis ch. 6), required-level anchors, evidence caps.
+   Numeric weights are study choices with no legal authority.
+   ============================================================ */
+"use strict";
+const DATA = {
+  caps: [
+    { id: "translation", n: 1, name: "Translation",
+      q: "Does the tool translate the system's bureaucratic and technical language into words an ordinary claimant understands?",
+      dim: "technical", anchor: "Claimant function 1 · thesis ch. 4 → Technical dimension",
+      lo: "absent", hi: "excellent" },
+    { id: "eligibility", n: 2, name: "Eligibility explanation",
+      q: "Does it clearly explain why the claimant is or is not eligible, including the legal requirements behind the outcome?",
+      dim: "technical", anchor: "Claimant function 2 · thesis ch. 4 → Technical dimension",
+      lo: "absent", hi: "excellent" },
+    { id: "evidence", n: 3, name: "Evidence mapping",
+      q: "Does it identify what evidence is missing and which documents the claimant should produce?",
+      dim: "technical", anchor: "Claimant function 3 · thesis ch. 4 → Technical dimension",
+      lo: "absent", hi: "excellent" },
+    { id: "mismatch", n: 4, name: "Error & mismatch detection",
+      q: "Can it detect inconsistencies, mismatched records, and likely agency errors before rejection?",
+      dim: "technical", anchor: "Claimant function 4 · thesis ch. 4 → Technical dimension",
+      lo: "absent", hi: "excellent" },
+    { id: "contest", n: 5, name: "Contestation support",
+      q: "Does it help prepare appeals, draft submissions, and organize evidence toward the right door?",
+      dim: "technical", anchor: "Claimant function 5 · thesis ch. 4 → Technical dimension",
+      lo: "absent", hi: "excellent" },
+    { id: "explain", n: 6, name: "Explainability of the tool itself",
+      q: "Can the claimant understand how the tool reached its own recommendations?",
+      dim: "accountability", anchor: "Design condition 2 · thesis ch. 9 → Accountability dimension",
+      lo: "opaque", hi: "fully explained" },
+    { id: "access", n: 7, name: "Accessibility",
+      q: "Can the affected population actually use it? Weigh literacy, disability, language, mobile-only use, offline use, and digital skills.",
+      dim: "economic", anchor: "Parity of effort · thesis ch. 6 → Economic dimension",
+      lo: "excludes most", hi: "reaches everyone" },
+    { id: "escalate", n: 8, name: "Human escalation",
+      q: "Can the claimant reach a real human through the tool when the case needs one?",
+      dim: "accountability", anchor: "Route from individual failure · thesis ch. 6 → Accountability dimension",
+      lo: "no route", hi: "guaranteed route" },
+    { id: "sovereignty", n: 9, name: "Data sovereignty",
+      q: "Does the claimant keep meaningful control of their own information inside the tool?",
+      dim: "accountability", anchor: "Design condition 3 · thesis ch. 9 → Accountability dimension",
+      lo: "none", hi: "full control" },
+    { id: "maintain", n: 10, name: "Continuous maintenance",
+      q: "Is the tool updated when the government system or the rules change, with the change disclosed in advance?",
+      dim: "temporal", anchor: "Co-evolution · thesis ch. 6 → Temporal dimension",
+      lo: "abandoned", hi: "co-evolves" },
+    { id: "mimicry", n: 11, name: "Resistance to category mimicry",
+      q: "Does it adapt to unusual cases instead of forcing everyone into the state's predefined categories?",
+      dim: "empirical", anchor: "Design condition 4 · thesis ch. 9 → Empirical dimension",
+      lo: "mimics the state", hi: "fits the person" },
+    { id: "effective", n: 12, name: "Practical effectiveness",
+      q: "Does it observably increase the claimant's ability to protect their rights, corrective yield in fact, not on paper?",
+      dim: "empirical", anchor: "Measured corrective yield · thesis ch. 6 → Empirical dimension",
+      lo: "no observable effect", hi: "measured yield" },
+    { id: "cost", n: 13, name: "Cost of contestation",
+      q: "Who bears the cost of contesting? Is using the tool and challenging the output free for the claimant, with the deployer funding it first and a regulator second?",
+      dim: "economic", anchor: "Deployer-funded contestation · thesis ch. 6 → Economic dimension",
+      lo: "claimant pays", hi: "deployer funds" }
+  ],
+  dims: {
+    technical: { n: "Technical",
+      c: "The tool's functional reach matches the system's decisional architecture, point for point, at matching granularity.",
+      f: "Floor. The counterpart cannot let the claimant identify the specific ground of the adverse decision, or returns the same output whatever the system decided." },
+    economic: { n: "Economic",
+      c: "Contestation is made affordable, parity of effort, with the burden on the deployer first and a regulator second, never on the claimant.",
+      f: "Floor. Contestation stays infeasible for a substantial share of the affected population, or the deployer funds none of it." },
+    temporal: { n: "Temporal",
+      c: "The counterpart fits the system's deadlines and co-evolves with it, with advance disclosure of changes.",
+      f: "Floor. The counterpart cannot be used inside the deadline, or a silent system change has broken it and it has not been updated." },
+    empirical: { n: "Empirical",
+      c: "The counterpart works in fact, measured corrective yield at level 3, reaching the whole affected population.",
+      f: "Floor. A high-stakes system is met only by information with no route to correction, yield is null or unmeasured, or the tool excludes the people most affected." },
+    accountability: { n: "Accountability",
+      c: "Responsibility is locatable and independent, a clear duty-bearer chain and a route from individual failures to structural correction.",
+      f: "Floor. No independent body answers for the counterpart, or the deploying institution monitors its own shield." }
+  },
+  dimOrder: ["technical", "economic", "temporal", "empirical", "accountability"],
+  req: {
+    minimal:  { label: "Level 0 to 1 · Minimal duty",  pct: 30 },
+    moderate: { label: "Level 2 · Moderate duty",      pct: 55 },
+    high:     { label: "Level 3 · High duty",          pct: 80 },
+    maximal:  { label: "Level 3+ · Maximal duty",      pct: 92 }
+  },
+  evCap:   { verified: 5, documented: 3, none: 0 },
+  evLabel: { verified: "Verified in use", documented: "Documented only", none: "No evidence" },
+  bands: [
+    { max: 20,  name: "minimal deficit" },
+    { max: 40,  name: "moderate deficit" },
+    { max: 60,  name: "serious deficit" },
+    { max: 80,  name: "critical deficit" },
+    { max: 101, name: "structural failure" }
+  ]
+};
+</script>
+
+<script>
+/* ============================================================
+   LOGIC. Rendering, evidence-capped scoring, gap computation,
+   dimension roll-ups, repairs, persistence, and the Word report
+   (a .docx assembled offline in the browser, as in Module A).
+   ============================================================ */
+"use strict";
+(function () {
+  var $ = function (s) { return document.querySelector(s); };
+  var lastResult = null;
+  var STORE_KEY = "cste_v1";
+
+  function esc(s) {
+    return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  }
+
+  /* ---------- capability cards ---------- */
+  var grid = $("#cap-grid");
+  grid.innerHTML = DATA.caps.map(function (c) {
+    return '<div class="factor cap">' +
+      '<div class="factor-head"><span class="label">' + c.n + ' &middot; ' + esc(c.name) + '</span>' +
+      '<output id="out-' + c.id + '">0 / 5</output></div>' +
+      '<p class="desc">' + esc(c.q) + '</p>' +
+      '<p class="anchor">' + esc(c.anchor) + '</p>' +
+      '<input class="range" type="range" min="0" max="5" step="1" value="0" id="' + c.id + '" aria-label="' + esc(c.name) + ' score">' +
+      '<div class="ends"><span>' + esc(c.lo) + '</span><span>' + esc(c.hi) + '</span></div>' +
+      '<div class="ev-row">' +
+        '<div class="ev-field"><label for="ev-' + c.id + '">Evidence</label>' +
+        '<select id="ev-' + c.id + '">' +
+          '<option value="verified">Verified in use &middot; full scale</option>' +
+          '<option value="documented">Documented only &middot; capped at 3</option>' +
+          '<option value="none" selected>No evidence &middot; counts as 0</option>' +
+        '</select></div>' +
+        '<div class="ev-field"><label for="note-' + c.id + '">What the evidence is</label>' +
+        '<input type="text" id="note-' + c.id + '" placeholder="e.g. ran the appeal flow on a live case" autocomplete="off"></div>' +
+      '</div>' +
+      '<p class="cap-note" id="cap-' + c.id + '" hidden></p>' +
+    '</div>';
+  }).join("");
+
+  function effOf(score, ev) { return Math.min(score, DATA.evCap[ev]); }
+
+  function paintCap(c) {
+    var score = parseInt($("#" + c.id).value, 10);
+    var ev = $("#ev-" + c.id).value;
+    var eff = effOf(score, ev);
+    var out = $("#out-" + c.id);
+    var note = $("#cap-" + c.id);
+    if (eff < score) {
+      out.textContent = score + " \u2192 " + eff + " / 5";
+      note.textContent = ev === "none"
+        ? "No evidence recorded, this capability counts as 0 and will be reported as unverified."
+        : "Documented but not observed, the evidence cap holds the effective score at 3.";
+      note.hidden = false;
+    } else {
+      out.textContent = eff + " / 5";
+      if (ev === "none" && score === 0) {
+        note.textContent = "No evidence recorded, this capability counts as 0 and will be reported as unverified.";
+        note.hidden = false;
+      } else {
+        note.hidden = true;
+      }
+    }
+  }
+
+  function markStale() {
+    if (lastResult) $("#stale").hidden = false;
+  }
+
+  DATA.caps.forEach(function (c) {
+    $("#" + c.id).addEventListener("input", function () { paintCap(c); markStale(); });
+    $("#ev-" + c.id).addEventListener("change", function () { paintCap(c); markStale(); });
+    $("#note-" + c.id).addEventListener("input", markStale);
+    paintCap(c);
+  });
+  ["#tool-desc", "#sys-name"].forEach(function (s) {
+    $(s).addEventListener("input", markStale);
+  });
+  $("#req-level").addEventListener("change", markStale);
+
+  /* ---------- reading & computing ---------- */
+  function readInputs() {
+    var caps = {};
+    DATA.caps.forEach(function (c) {
+      caps[c.id] = {
+        score: parseInt($("#" + c.id).value, 10),
+        ev: $("#ev-" + c.id).value,
+        note: $("#note-" + c.id).value.trim()
+      };
+    });
+    return {
+      desc: $("#tool-desc").value.trim(),
+      sys: $("#sys-name").value.trim(),
+      req: $("#req-level").value,
+      caps: caps
+    };
+  }
+
+  function compute(v) {
+    var MAXPTS = DATA.caps.length * 5;
+    var PCT_PER_POINT = 100 / MAXPTS;
+    var sum = 0;
+    var effs = {};
+    DATA.caps.forEach(function (c) {
+      var e = effOf(v.caps[c.id].score, v.caps[c.id].ev);
+      effs[c.id] = e;
+      sum += e;
+    });
+    var delivered = Math.round((sum / MAXPTS) * 1000) / 10; /* percent, one decimal */
+    var reqPct = DATA.req[v.req].pct;
+    var gap = Math.max(0, Math.round((reqPct - delivered) * 10) / 10); /* points of duty */
+    var relGap = reqPct > 0 ? Math.round((gap / reqPct) * 1000) / 10 : 0; /* % of the duty */
+    var band = null;
+    for (var i = 0; i < DATA.bands.length; i++) {
+      if (relGap < DATA.bands[i].max) { band = DATA.bands[i].name; break; }
+    }
+    var compliance = gap === 0 ? "Fully compliant"
+      : (relGap < 40 ? "Partially compliant" : "Non-compliant");
+    var deliveredLevel =
+      delivered >= DATA.req.maximal.pct  ? DATA.req.maximal.label :
+      delivered >= DATA.req.high.pct     ? DATA.req.high.label :
+      delivered >= DATA.req.moderate.pct ? DATA.req.moderate.label :
+      delivered >= DATA.req.minimal.pct  ? DATA.req.minimal.label :
+      "Below Level 1 · the informational floor is not met";
+    var rolls = DATA.dimOrder.map(function (d) {
+      var members = DATA.caps.filter(function (c) { return c.dim === d; });
+      var s = 0;
+      members.forEach(function (c) { s += effs[c.id]; });
+      var avg = Math.round((s / members.length) * 10) / 10;
+      return { dim: d, avg: avg, members: members, nearFloor: false };
+    });
+    rolls.forEach(function (roll) { roll.nearFloor = roll.avg <= 1.5; });
+    var floorBreaches = rolls.filter(function (roll) { return roll.nearFloor; });
+    var weakest = rolls.slice().sort(function (a, b) {
+      return a.avg - b.avg || DATA.dimOrder.indexOf(a.dim) - DATA.dimOrder.indexOf(b.dim);
+    }).slice(0, 3);
+    var unverified = DATA.caps.filter(function (c) { return v.caps[c.id].ev === "none"; });
+    /* smallest set of improvements: greedy on ascending effective score,
+       and the final item stops at the point that closes the gap */
+    var fixes = [];
+    if (gap > 0) {
+      var remaining = gap;
+      var order = DATA.caps.slice().sort(function (a, b) {
+        return effs[a.id] - effs[b.id] || a.n - b.n;
+      });
+      for (var k = 0; k < order.length && remaining > 1e-9; k++) {
+        var c = order[k];
+        var headroom = 5 - effs[c.id];
+        if (headroom <= 0) continue;
+        var neededPts = Math.ceil(remaining / PCT_PER_POINT - 1e-9);
+        var take = Math.min(headroom, neededPts);
+        var target = effs[c.id] + take;
+        var gainPct = take * PCT_PER_POINT;
+        var ev = v.caps[c.id].ev;
+        var prefix = ev === "none" ? "Build or verify in use: "
+          : ev === "documented" ? "Demonstrate in use to lift the evidence cap: " : "Strengthen: ";
+        fixes.push({
+          text: prefix + c.name + ", " + effs[c.id] + " \u2192 " + target +
+                " (+" + (Math.round(gainPct * 10) / 10).toFixed(1) + " pts of delivered capacity)",
+          gain: gainPct
+        });
+        remaining -= gainPct;
+      }
+    }
+    return { delivered: delivered, reqPct: reqPct, gap: gap, relGap: relGap, band: band,
+             compliance: compliance, deliveredLevel: deliveredLevel,
+             rolls: rolls, floorBreaches: floorBreaches, weakest: weakest,
+             unverified: unverified, fixes: fixes, effs: effs };
+  }
+
+  /* ---------- narrative ---------- */
+  function buildAssessment(v, r) {
+    var out = [];
+    var reqLabel = DATA.req[v.req].label;
+    out.push("<p><em>The question under Module B.</em> Not whether " +
+      (v.desc ? "this tool" : "the tool") +
+      " is good in the abstract, but whether it is sufficient for the obligation Module A assigned, <strong>" +
+      esc(reqLabel) + "</strong>" +
+      (v.sys ? ", generated by " + esc(v.sys) : "") + ".</p>");
+    if (v.desc) out.push("<p><em>The tool.</em> " + esc(v.desc) + "</p>");
+    if (r.gap === 0 && r.floorBreaches.length > 0) {
+      var names = r.floorBreaches.map(function (roll) { return DATA.dims[roll.dim].n; }).join(", ");
+      out.push("<p>On the evidence recorded here the tool delivers <strong>" + esc(r.deliveredLevel) +
+        "</strong>, " + r.delivered.toFixed(1) + "% of full countervailing capacity against the " +
+        r.reqPct + "% the assigned level requires, and the averages meet the level. But the <strong>" +
+        esc(names) + "</strong> dimension" + (r.floorBreaches.length > 1 ? "s sit" : " sits") +
+        " at or near the floor, and under the framework a floor is a minimum that averages cannot " +
+        "buy back, the lowest dimension is the binding constraint. The evaluation therefore " +
+        "withholds full compliance. " + esc(DATA.dims[r.floorBreaches[0].dim].f) +
+        " Whether the floor is actually breached is a qualitative judgment that rests with the evaluator.</p>");
+    } else if (r.gap === 0) {
+      out.push("<p>On the evidence recorded here the tool delivers <strong>" + esc(r.deliveredLevel) +
+        "</strong>, " + r.delivered.toFixed(1) + "% of full countervailing capacity against the " +
+        r.reqPct + "% the assigned level requires. The due-process gap is zero and no dimension " +
+        "sits near its floor. On this record the tool restores a procedurally fair balance between " +
+        "the automated state and the affected person, and keeps it only for as long as maintenance " +
+        "and independent verification keep pace.</p>");
+    } else {
+      var w = r.weakest[0];
+      out.push("<p>On the evidence recorded here the tool delivers <strong>" + esc(r.deliveredLevel) +
+        "</strong>, " + r.delivered.toFixed(1) + "% of full countervailing capacity against the " +
+        r.reqPct + "% the assigned level requires, " + r.gap.toFixed(1) + " points short of the " +
+        "assigned level. Measured against the duty itself the shortfall is <strong>" +
+        r.relGap.toFixed(1) + "%</strong>, a " + r.band + ", and the evaluation reads " +
+        r.compliance.toLowerCase() + ". On this record the tool does not yet restore a procedurally " +
+        "fair balance. The binding weakness is the <strong>" + DATA.dims[w.dim].n +
+        "</strong> dimension, at " + w.avg.toFixed(1) + " of 5 across its capabilities" +
+        (w.nearFloor ? ", at or near its floor. " + esc(DATA.dims[w.dim].f)
+                     : ", short of its top anchor.") + "</p>");
+    }
+    if (r.unverified.length > 0) {
+      out.push("<p><em>Evidence.</em> " + r.unverified.length +
+        (r.unverified.length === 1 ? " capability" : " capabilities") +
+        " could not be verified and count as absent under the framework's evidence rule, they are " +
+        "listed by name below. Verification may move the result, in either direction.</p>");
+    } else {
+      out.push("<p><em>Evidence.</em> Every scored capability is backed by recorded evidence, " +
+        "nothing here rests on marketing claims.</p>");
+    }
+    out.push("<p>The percentages, the level anchors, and the repair list are study choices with no " +
+      "legal authority. Read this as a structured argument about what the counterpart still owes, " +
+      "always together with the capability record beside it.</p>");
+    return out.join("");
+  }
+
+  /* ---------- render ---------- */
+  var WEAK_PHRASES = [
+    "The claimant's procedural protection thins here first. ",
+    "Second weakest, the next place protection gives way. ",
+    "Third weakest, still short of what the duty demands. "
+  ];
+
+  function render(v, r) {
+    $("#needle").style.left = Math.min(100, r.relGap) + "%";
+    $("#verdict").textContent =
+      r.gap === 0 && r.floorBreaches.length > 0
+        ? "Compliant on average · a floor is breached"
+        : r.gap === 0
+          ? "Fully compliant · no due-process deficit"
+          : r.compliance + " · " + r.band;
+    $("#score-line").textContent = "Required " + r.reqPct + "% · Delivered " +
+      r.delivered.toFixed(1) + "% · Gap " + r.gap.toFixed(1) + " pts (" +
+      r.relGap.toFixed(1) + "% of the duty)";
+    $("#levels-line").textContent = "Required: " + DATA.req[v.req].label +
+      "  —  Delivered: " + r.deliveredLevel +
+      (r.gap === 0 ? " (meets the required level)"
+                   : " (" + r.gap.toFixed(1) + " pts short of the required level)");
+    $("#assessment").innerHTML = buildAssessment(v, r);
+    $("#dimrolls").innerHTML = r.rolls.map(function (roll) {
+      var d = DATA.dims[roll.dim];
+      var near = roll.nearFloor ? " — at or near the floor" : "";
+      return "<li><strong>" + esc(d.n) + " · " + roll.avg.toFixed(1) + " / 5" + near + "</strong>" +
+        "Top anchor. " + esc(d.c) +
+        '<span class="members">' + roll.members.map(function (c) {
+          return esc(c.name) + " " + r.effs[c.id];
+        }).join(" · ") + "</span>" +
+        '<span class="floor">' + esc(d.f) + "</span></li>";
+    }).join("");
+    $("#weakest").innerHTML = r.weakest.map(function (roll, i) {
+      var d = DATA.dims[roll.dim];
+      var tail = roll.nearFloor
+        ? '<span class="floor">' + esc(d.f) + "</span>"
+        : '<span class="floor">Top anchor. ' + esc(d.c) + "</span>";
+      return "<li><strong>" + (i + 1) + " · " + esc(d.n) + " · " + roll.avg.toFixed(1) + " / 5" +
+        (roll.nearFloor ? " — at or near the floor" : "") + "</strong>" +
+        WEAK_PHRASES[i] + tail + "</li>";
+    }).join("");
+    $("#fixes").innerHTML = r.fixes.length
+      ? r.fixes.map(function (f) { return "<li>" + esc(f.text) + "</li>"; }).join("")
+      : "<li>No improvement is required to meet the assigned level. Maintenance and periodic re-verification keep it that way.</li>";
+    $("#unverified").innerHTML = r.unverified.length
+      ? r.unverified.map(function (c) {
+          return "<li>" + c.n + " · " + esc(c.name) + " — could not be verified, counts as absent.</li>";
+        }).join("")
+      : "<li>None. Every capability carries recorded evidence.</li>";
+    $("#results").hidden = false;
+    $("#stale").hidden = true;
+  }
+
+  $("#btn-evaluate").addEventListener("click", function () {
+    var note = $("#eval-note");
+    var v = readInputs();
+    if (!v.req) {
+      note.textContent = "Choose the required level from Module A first.";
+      note.hidden = false;
+      return;
+    }
+    note.hidden = true;
+    var r = compute(v);
+    lastResult = { inputs: v, out: r };
+    render(v, r);
+    var res = $("#results");
+    if (typeof res.scrollIntoView === "function") {
+      res.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  });
+
+  /* ---------- persistence (versioned) ---------- */
+  function loadStore() {
+    try {
+      var raw = localStorage.getItem(STORE_KEY);
+      if (!raw) return [];
+      var parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) return parsed;          /* pre-versioned payloads */
+      if (parsed && parsed.v === 1 && Array.isArray(parsed.items)) return parsed.items;
+      return [];
+    } catch (e) { return []; }
+  }
+  function saveStore(items) {
+    try {
+      localStorage.setItem(STORE_KEY, JSON.stringify({ v: 1, items: items }));
+      return true;
+    } catch (e) { return false; }
+  }
+  function renderSaved() {
+    var items = loadStore();
+    $("#saved-empty").hidden = items.length > 0;
+    $("#saved-list").innerHTML = items.map(function (it) {
+      return '<li><span class="badge">Gap ' + esc(String(it.gap)) + '%</span>' +
+        '<span class="name">' + esc(it.name) + '</span>' +
+        '<span class="meta">' + esc(it.date) + " · " + esc(it.reqLabel) + '</span>' +
+        '<span class="saved-actions">' +
+        '<button class="btn btn-ghost" data-load="' + it.id + '">Load</button>' +
+        '<button class="btn btn-red" data-del="' + it.id + '">Delete</button></span></li>';
+    }).join("");
+  }
+  $("#btn-save").addEventListener("click", function () {
+    var note = $("#save-note");
+    if (!lastResult) {
+      note.textContent = "Evaluate a tool first.";
+      note.hidden = false;
+      return;
+    }
+    var items = loadStore();
+    items.unshift({
+      id: String(Date.now()),
+      name: lastResult.inputs.desc ? lastResult.inputs.desc.slice(0, 70) : "Untitled tool",
+      date: new Date().toISOString().slice(0, 10),
+      gap: lastResult.out.gap,
+      reqLabel: DATA.req[lastResult.inputs.req].label,
+      inputs: lastResult.inputs
+    });
+    if (saveStore(items)) {
+      note.hidden = true;
+      renderSaved();
+    } else {
+      note.textContent = "Saving is unavailable in this viewer.";
+      note.hidden = false;
+    }
+  });
+  $("#saved-list").addEventListener("click", function (e) {
+    var t = e.target;
+    var loadId = t.getAttribute && t.getAttribute("data-load");
+    var delId = t.getAttribute && t.getAttribute("data-del");
+    if (loadId) {
+      var item = loadStore().filter(function (x) { return x.id === loadId; })[0];
+      if (!item) return;
+      $("#tool-desc").value = item.inputs.desc || "";
+      $("#sys-name").value = item.inputs.sys || "";
+      $("#req-level").value = item.inputs.req;
+      DATA.caps.forEach(function (c) {
+        var s = item.inputs.caps[c.id] || { score: 0, ev: "none", note: "" };
+        $("#" + c.id).value = String(s.score);
+        $("#ev-" + c.id).value = s.ev;
+        $("#note-" + c.id).value = s.note || "";
+        paintCap(c);
+      });
+      $("#btn-evaluate").click();
+    }
+    if (delId) {
+      saveStore(loadStore().filter(function (x) { return x.id !== delId; }));
+      renderSaved();
+    }
+  });
+  $("#btn-clear-saved").addEventListener("click", function () {
+    saveStore([]);
+    renderSaved();
+  });
+
+  /* export / import of saved evaluations (JSON, offline) */
+  function downloadFile(data, filename, mime) {
+    try {
+      var blob = new Blob([data], { type: mime });
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(function () { URL.revokeObjectURL(url); }, 4000);
+      return true;
+    } catch (e) { return false; }
+  }
+  $("#btn-export").addEventListener("click", function () {
+    var note = $("#io-note");
+    var items = loadStore();
+    if (!items.length) {
+      note.textContent = "Nothing to export yet.";
+      note.hidden = false;
+      return;
+    }
+    var ok = downloadFile(JSON.stringify({ v: 1, items: items }, null, 2),
+      "ccd-evaluations-" + new Date().toISOString().slice(0, 10) + ".json",
+      "application/json");
+    note.textContent = ok ? "" : "Export is unavailable in this viewer.";
+    note.hidden = ok;
+  });
+  $("#btn-import").addEventListener("click", function () { $("#import-file").click(); });
+  $("#import-file").addEventListener("change", function () {
+    var note = $("#io-note");
+    var file = this.files && this.files[0];
+    this.value = "";
+    if (!file) return;
+    file.text().then(function (text) {
+      var parsed = JSON.parse(text);
+      var incoming = Array.isArray(parsed) ? parsed
+        : (parsed && parsed.v === 1 && Array.isArray(parsed.items)) ? parsed.items : null;
+      if (!incoming) throw new Error("format");
+      var items = loadStore();
+      var have = {};
+      items.forEach(function (it) { have[it.id] = true; });
+      var added = 0;
+      incoming.forEach(function (it) {
+        if (it && it.id && it.inputs && !have[it.id]) {
+          items.push(it);
+          have[it.id] = true;
+          added++;
+        }
+      });
+      saveStore(items);
+      renderSaved();
+      note.textContent = added + (added === 1 ? " evaluation imported." : " evaluations imported.");
+      note.hidden = false;
+    }).catch(function () {
+      note.textContent = "That file is not a valid evaluations export.";
+      note.hidden = false;
+    });
+  });
+  renderSaved();
+
+  /* ---------- Word report, a .docx assembled in the browser ----------
+     Same offline machinery as Module A: UTF-8 encoder, CRC-32,
+     stored ZIP writer, minimal WordprocessingML. No library,
+     no network, nothing leaves the machine. */
+  function utf8(s) {
+    var out = [], i, c;
+    for (i = 0; i < s.length; i++) {
+      c = s.codePointAt(i);
+      if (c > 0xFFFF) i++;
+      if (c < 0x80) out.push(c);
+      else if (c < 0x800) out.push(0xC0 | (c >> 6), 0x80 | (c & 63));
+      else if (c < 0x10000) out.push(0xE0 | (c >> 12), 0x80 | ((c >> 6) & 63), 0x80 | (c & 63));
+      else out.push(0xF0 | (c >> 18), 0x80 | ((c >> 12) & 63), 0x80 | ((c >> 6) & 63), 0x80 | (c & 63));
+    }
+    return new Uint8Array(out);
+  }
+  var CRC_TABLE = (function () {
+    var t = new Uint32Array(256), c, n, k;
+    for (n = 0; n < 256; n++) {
+      c = n;
+      for (k = 0; k < 8; k++) c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1);
+      t[n] = c >>> 0;
+    }
+    return t;
+  })();
+  function crc32(b) {
+    var c = 0xFFFFFFFF, i;
+    for (i = 0; i < b.length; i++) c = CRC_TABLE[(c ^ b[i]) & 0xFF] ^ (c >>> 8);
+    return (c ^ 0xFFFFFFFF) >>> 0;
+  }
+  function zipStore(files) {
+    var chunks = [], central = [], offset = 0;
+    var now = new Date();
+    var dt = ((now.getHours() << 11) | (now.getMinutes() << 5) | (now.getSeconds() >> 1)) & 0xFFFF;
+    var dd = (((now.getFullYear() - 1980) << 9) | ((now.getMonth() + 1) << 5) | now.getDate()) & 0xFFFF;
+    function u16(v) { return [v & 255, (v >>> 8) & 255]; }
+    function u32(v) { return [v & 255, (v >>> 8) & 255, (v >>> 16) & 255, (v >>> 24) & 255]; }
+    files.forEach(function (f) {
+      var name = utf8(f.name);
+      var data = typeof f.data === "string" ? utf8(f.data) : f.data;
+      var crc = crc32(data);
+      var head = new Uint8Array([].concat(
+        u32(0x04034b50), u16(20), u16(0), u16(0), u16(dt), u16(dd),
+        u32(crc), u32(data.length), u32(data.length), u16(name.length), u16(0)));
+      chunks.push(head, name, data);
+      central.push({ name: name, crc: crc, size: data.length, off: offset });
+      offset += head.length + name.length + data.length;
+    });
+    var cdStart = offset, cdLen = 0;
+    central.forEach(function (e) {
+      var rec = new Uint8Array([].concat(
+        u32(0x02014b50), u16(20), u16(20), u16(0), u16(0), u16(dt), u16(dd),
+        u32(e.crc), u32(e.size), u32(e.size), u16(e.name.length),
+        u16(0), u16(0), u16(0), u16(0), u32(0), u32(e.off)));
+      chunks.push(rec, e.name);
+      cdLen += rec.length + e.name.length;
+    });
+    chunks.push(new Uint8Array([].concat(
+      u32(0x06054b50), u16(0), u16(0), u16(central.length), u16(central.length),
+      u32(cdLen), u32(cdStart), u16(0))));
+    var total = 0;
+    chunks.forEach(function (c) { total += c.length; });
+    var out = new Uint8Array(total), pos = 0;
+    chunks.forEach(function (c) { out.set(c, pos); pos += c.length; });
+    return out;
+  }
+  function xesc(s) {
+    return String(s)
+      .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, "")
+      .replace(/&/g, "&amp;").replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  }
+  function wRun(text, o) {
+    o = o || {};
+    var pr = "";
+    if (o.b) pr += "<w:b/>";
+    if (o.i) pr += "<w:i/>";
+    if (o.color) pr += '<w:color w:val="' + o.color + '"/>';
+    if (o.sz) pr += '<w:sz w:val="' + o.sz + '"/><w:szCs w:val="' + o.sz + '"/>';
+    var t = xesc(text).replace(/\n/g, '</w:t><w:br/><w:t xml:space="preserve">');
+    return "<w:r>" + (pr ? "<w:rPr>" + pr + "</w:rPr>" : "") +
+           '<w:t xml:space="preserve">' + t + "</w:t></w:r>";
+  }
+  function wPara(runs, o) {
+    o = o || {};
+    var pr = "";
+    if (o.bullet) pr += '<w:numPr><w:ilvl w:val="0"/><w:numId w:val="1"/></w:numPr>';
+    if (o.ind) pr += '<w:ind w:left="' + o.ind + '"/>';
+    pr += '<w:spacing w:before="' + (o.before || 0) + '" w:after="' + (o.after == null ? 120 : o.after) + '"/>';
+    return "<w:p><w:pPr>" + pr + "</w:pPr>" +
+           (Array.isArray(runs) ? runs.join("") : runs) + "</w:p>";
+  }
+  function wHead(text) { return wPara(wRun(text, { b: true, sz: 28 }), { before: 280, after: 130 }); }
+  function runsFromNode(node, inherit) {
+    var out = [];
+    Array.prototype.forEach.call(node.childNodes, function (ch) {
+      if (ch.nodeType === 3) {
+        if (ch.nodeValue) out.push(wRun(ch.nodeValue, inherit));
+        return;
+      }
+      if (ch.nodeType !== 1) return;
+      var o = { b: !!(inherit && inherit.b), i: !!(inherit && inherit.i) };
+      if (ch.tagName === "EM" || ch.tagName === "I") o.i = true;
+      if (ch.tagName === "STRONG" || ch.tagName === "B") o.b = true;
+      out = out.concat(runsFromNode(ch, o));
+    });
+    return out;
+  }
+
+  function buildReportBody() {
+    var v = lastResult.inputs, r = lastResult.out;
+    var body = [];
+    var dateLine = new Date().toLocaleDateString(undefined,
+      { year: "numeric", month: "long", day: "numeric" });
+
+    body.push(wPara(wRun("Claimant-Side Tool Evaluation Report", { b: true, sz: 40, color: "C8102E" }), { after: 40 }));
+    body.push(wPara(wRun("Countervailing Co-Deployment framework · Module B", { i: true, color: "555555" }), { after: 60 }));
+    body.push(wPara(wRun("Generated on " + dateLine +
+      " by the Claimant-Side Tool Evaluator, a single-file offline tool. MIT License.",
+      { sz: 18, color: "666666" }), { after: 200 }));
+
+    body.push(wHead("1. The tool under evaluation"));
+    body.push(wPara(wRun(v.desc || "No description provided.")));
+    if (v.sys) body.push(wPara([wRun("Counters: ", { b: true }), wRun(v.sys)]));
+    body.push(wPara([wRun("Required level, from Module A: ", { b: true }),
+                     wRun(DATA.req[v.req].label)]));
+
+    body.push(wHead("2. Result"));
+    body.push(wPara([wRun($("#verdict").textContent, { b: true }),
+                     wRun("  ·  " + $("#score-line").textContent)]));
+    body.push(wPara(wRun($("#levels-line").textContent)));
+
+    body.push(wHead("3. Capability scores, on evidence"));
+    DATA.caps.forEach(function (c) {
+      var s = v.caps[c.id];
+      var eff = r.effs[c.id];
+      var line = [wRun(c.n + ". " + c.name + ": ", { b: true }),
+                  wRun(eff + " of 5 · " + DATA.evLabel[s.ev])];
+      if (eff < s.score) line.push(wRun(" · capped from " + s.score, { i: true, color: "C8102E" }));
+      if (s.note) line.push(wRun(" — " + s.note, { i: true, color: "666666" }));
+      body.push(wPara(line, { bullet: true, after: 50 }));
+    });
+
+    body.push(wHead("4. The five dimensions, rolled up"));
+    r.rolls.forEach(function (roll) {
+      var d = DATA.dims[roll.dim];
+      var near = roll.nearFloor ? " — at or near the floor" : "";
+      body.push(wPara([wRun(d.n + " · " + roll.avg.toFixed(1) + " / 5" + near + ". ", { b: true }),
+                       wRun("Top anchor. " + d.c)], { after: 40 }));
+      body.push(wPara(wRun(d.f, { i: true, color: "555555" }), { ind: 360, after: 140 }));
+    });
+
+    body.push(wHead("5. The weakest points"));
+    r.weakest.forEach(function (roll, i) {
+      var d = DATA.dims[roll.dim];
+      var tail = roll.nearFloor ? d.f : "Top anchor. " + d.c;
+      body.push(wPara([wRun((i + 1) + ". " + d.n + " · " + roll.avg.toFixed(1) + " / 5" +
+        (roll.nearFloor ? " — at or near the floor" : "") + ". ", { b: true }),
+        wRun(WEAK_PHRASES[i] + tail)], { after: 80 }));
+    });
+
+    body.push(wHead("6. The smallest set of improvements"));
+    if (r.fixes.length) {
+      r.fixes.forEach(function (f) { body.push(wPara(wRun(f.text), { bullet: true, after: 60 })); });
+    } else {
+      body.push(wPara(wRun("No improvement is required to meet the assigned level. Maintenance and periodic re-verification keep it that way.")));
+    }
+
+    body.push(wHead("7. Unverified capabilities"));
+    if (r.unverified.length) {
+      r.unverified.forEach(function (c) {
+        body.push(wPara(wRun(c.n + ". " + c.name + " — could not be verified, counts as absent."), { bullet: true, after: 50 }));
+      });
+    } else {
+      body.push(wPara(wRun("None. Every capability carries recorded evidence.")));
+    }
+
+    body.push(wHead("8. Final opinion"));
+    Array.prototype.forEach.call(document.querySelectorAll("#assessment p"), function (p) {
+      body.push(wPara(runsFromNode(p, null)));
+    });
+
+    body.push(wPara(wRun("Claimant-Side Tool Evaluator · Module B · Countervailing Co-Deployment framework · report assembled offline in the browser · MIT License",
+      { sz: 16, color: "888888" }), { before: 240 }));
+    return body.join("");
+  }
+
+  function buildDocxParts() {
+    var XH = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>';
+    var stamp = new Date().toISOString().replace(/\.\d{3}Z$/, "Z");
+    var documentXml = XH +
+      '<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body>' +
+      buildReportBody() +
+      '<w:sectPr><w:pgSz w:w="11906" w:h="16838"/>' +
+      '<w:pgMar w:top="1440" w:right="1440" w:bottom="1440" w:left="1440"/></w:sectPr>' +
+      "</w:body></w:document>";
+    var numberingXml = XH +
+      '<w:numbering xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">' +
+      '<w:abstractNum w:abstractNumId="0"><w:multiLevelType w:val="singleLevel"/>' +
+      '<w:lvl w:ilvl="0"><w:numFmt w:val="bullet"/><w:lvlText w:val="&#8226;"/><w:lvlJc w:val="left"/>' +
+      '<w:pPr><w:ind w:left="360" w:hanging="360"/></w:pPr></w:lvl></w:abstractNum>' +
+      '<w:num w:numId="1"><w:abstractNumId w:val="0"/></w:num></w:numbering>';
+    var contentTypes = XH +
+      '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">' +
+      '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>' +
+      '<Default Extension="xml" ContentType="application/xml"/>' +
+      '<Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>' +
+      '<Override PartName="/word/numbering.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.numbering+xml"/>' +
+      '<Override PartName="/docProps/core.xml" ContentType="application/vnd.openxmlformats-package.core-properties+xml"/>' +
+      "</Types>";
+    var relsRoot = XH +
+      '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' +
+      '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/>' +
+      '<Relationship Id="rId2" Type="http://schemas.openxmlformats.org/package/2006/relationships/metadata/core-properties" Target="docProps/core.xml"/>' +
+      "</Relationships>";
+    var relsDoc = XH +
+      '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' +
+      '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/numbering" Target="numbering.xml"/>' +
+      "</Relationships>";
+    var coreXml = XH +
+      '<cp:coreProperties xmlns:cp="http://schemas.openxmlformats.org/package/2006/metadata/core-properties"' +
+      ' xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/"' +
+      ' xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">' +
+      "<dc:title>Claimant-Side Tool Evaluation Report</dc:title>" +
+      "<dc:creator>Claimant-Side Tool Evaluator</dc:creator>" +
+      '<dcterms:created xsi:type="dcterms:W3CDTF">' + stamp + "</dcterms:created>" +
+      '<dcterms:modified xsi:type="dcterms:W3CDTF">' + stamp + "</dcterms:modified>" +
+      "</cp:coreProperties>";
+    return [
+      { name: "[Content_Types].xml", data: contentTypes },
+      { name: "_rels/.rels", data: relsRoot },
+      { name: "docProps/core.xml", data: coreXml },
+      { name: "word/_rels/document.xml.rels", data: relsDoc },
+      { name: "word/document.xml", data: documentXml },
+      { name: "word/numbering.xml", data: numberingXml }
+    ];
+  }
+  function downloadDocx(bytes, filename) {
+    try {
+      var blob = new Blob([bytes],
+        { type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document" });
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(function () { URL.revokeObjectURL(url); }, 4000);
+      return true;
+    } catch (e) { return false; }
+  }
+  $("#btn-word").addEventListener("click", function () {
+    var note = $("#word-note");
+    if (!lastResult) {
+      note.textContent = "Evaluate a tool first.";
+      note.hidden = false;
+      return;
+    }
+    var bytes = zipStore(buildDocxParts());
+    var slug = lastResult.inputs.desc
+      ? lastResult.inputs.desc.toLowerCase().replace(/[^a-z0-9]+/g, "-")
+          .replace(/^-+|-+$/g, "").slice(0, 40).replace(/-+$/, "")
+      : "";
+    var fname = "ccd-tool-evaluation-" + (slug || "tool") + "-" +
+                new Date().toISOString().slice(0, 10) + ".docx";
+    if (!downloadDocx(bytes, fname)) {
+      note.textContent = "Download is unavailable in this viewer.";
+      note.hidden = false;
+      return;
+    }
+    note.hidden = true;
+  });
+
+  /* ---------- reveal ---------- */
+  var revealEls = document.querySelectorAll(".reveal");
+  if ("IntersectionObserver" in window) {
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) {
+        if (en.isIntersecting) { en.target.classList.add("in"); io.unobserve(en.target); }
+      });
+    }, { threshold: 0.15 });
+    revealEls.forEach(function (el) { io.observe(el); });
+  } else {
+    revealEls.forEach(function (el) { el.classList.add("in"); });
+  }
+})();
+</script>
+</body>
+</html>
